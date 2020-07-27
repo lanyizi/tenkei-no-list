@@ -79,12 +79,10 @@
     <table>
       <tr v-for="(row, j) in table" :key="j">
         <td v-for="(element, i) in row" in table :key="i">
-          <div v-if="element.type === 'match'">
-            <div>{{ element.value.p1.name }}</div>
-            <div>{{ element.value.p2.name }}</div>
+          <div v-if="element != null">
+            <div>{{ element.p1.name }}</div>
+            <div>{{ element.p2.name }}</div>
           </div>
-          <div v-else-if="element.type === 'connector'"></div>
-          <div v-else></div>
         </td>
       </tr>
     </table>
@@ -93,26 +91,8 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { Model, Match } from "../main";
+import { Model } from "../main";
 import { iota, nCopies } from "../utils";
-
-type Empty = {
-  type: "empty";
-  value: null;
-};
-
-type Connector = {
-  type: "connector";
-  value: "horizontal" | "vertical";
-};
-const horizontalConnector = (): Connector => ({
-  type: "connector",
-  value: "horizontal",
-});
-const verticalConnector = (): Connector => ({
-  type: "connector",
-  value: "vertical",
-});
 
 type PlayerVM = {
   name: string;
@@ -121,15 +101,12 @@ type PlayerVM = {
 };
 
 type MatchVM = {
-  type: "match";
-  value: {
-    id: number;
-    p1: PlayerVM;
-    p2: PlayerVM;
-  };
+  id: number;
+  p1: PlayerVM;
+  p2: PlayerVM;
 };
 
-type ElementVM = Empty | Connector | MatchVM;
+type ElementVM = MatchVM | null;
 
 export default Vue.extend({
   name: "HelloWorld",
@@ -151,24 +128,12 @@ export default Vue.extend({
   computed: {
     table(): ElementVM[][] {
       const wb = this.model.winnersBracket;
-      const pivot =
-        wb.length == 1 || wb[0].matches.length / wb[1].matches.length == 2
-          ? 0
-          : 1;
+      const rows = (1 << wb.length) - 1;
 
-      const rounds = wb.slice(pivot).map((round) => round.matches);
-      const rows = rounds[0].length * 2 + 1;
-      const emptyColumn = () =>
-        nCopies(
-          rows,
-          (): ElementVM => ({
-            type: "empty",
-            value: null,
-          })
-        );
-      const table = rounds.map(emptyColumn);
+      const emptyColumn = () => nCopies(rows, (): ElementVM => null);
+      const table = wb.map(emptyColumn);
       for (let i = table.length; i > 0; --i) {
-        table.splice(i - 1, 0, ...nCopies(3, emptyColumn));
+        table.splice(i - 1, 0, emptyColumn());
       }
 
       const matchToVM = (matchId: number): MatchVM => {
@@ -179,70 +144,32 @@ export default Vue.extend({
           isWinner: id === match.winner,
         });
         return {
-          type: "match",
-          value: {
-            id: matchId,
-            p1: playerToVM(match.p1, match.p1Score),
-            p2: playerToVM(match.p2, match.p2Score),
-          },
+          id: matchId,
+          p1: playerToVM(match.p1, match.p1Score),
+          p2: playerToVM(match.p2, match.p2Score),
         };
       };
-
-      rounds[0].forEach((matchId, i) => {
-        table[0][i * 2 + 1] = matchToVM(matchId);
-      });
-
-      const matchFinder = (matchId: number) => (x: ElementVM) =>
-        x.type === "match" && x.value.id === matchId;
-
-      rounds.forEach((matchIds, i) => {
-        for (let j = 0; j < matchIds.length; j += 2) {
-          const first = matchIds[j];
-          const second = matchIds[j + 1];
-
-          const a = table[i * 4].findIndex(matchFinder(first));
-          const b = table[i * 4].findIndex(matchFinder(second));
-          const nextId = this.model.matches[first].winnerNext;
-          if (nextId == null) {
-            break;
-          }
-          const next = a + (b - a) / 2;
-
-          table[i * 4 + 1][a] = horizontalConnector();
-          table[i * 4 + 1][b] = horizontalConnector();
-          for (let k = a; k <= b; ++k) {
-            table[i * 4 + 2][k] = verticalConnector();
-          }
-          table[i * 4 + 3][next] = horizontalConnector();
-          table[i * 4 + 4][next] = matchToVM(nextId);
+      const assign = (r: number, m: number, begin: number, end: number) => {
+        const current = begin + ((end - 1) - begin) / 2;
+        const matchId = wb[r].matches[m];
+        table[r * 2][current] = matchToVM(wb[r].matches[m]);
+        if (r == 0 || current == 0) {
+          return;
         }
-      });
+        const previousIndices = wb[r - 1].matches
+          .map((n, i) => [n, i])
+          .filter(([n]) => this.model.matches[n].winnerNext == matchId)
+          .map(([, i]) => i);
 
-      // handle column 0
-      if (pivot == 1) {
-        table.splice(0, 0, ...nCopies(4, emptyColumn));
-        for (const next of wb[1].matches) {
-          const froms = wb[0].matches.filter(
-            (m) => this.model.matches[m].winnerNext == next
-          );
-          if (froms.length == 0) {
-            // no matches linked it
-            continue;
-          }
-
-          const nextIndex = table[4].findIndex(matchFinder(next));
-          table[3][nextIndex] = horizontalConnector();
-
-          table[2][nextIndex] = horizontalConnector();
-          table[1][nextIndex] = horizontalConnector();
-          table[0][nextIndex] = matchToVM(froms.slice(-1)[0]);
-          if (froms.length > 1) {
-            table[2][nextIndex - 1] = verticalConnector();
-            table[1][nextIndex - 1] = horizontalConnector();
-            table[0][nextIndex - 1] = matchToVM(froms[0]);
-          }
+        if (previousIndices.length > 0) {
+          assign(r - 1, previousIndices[0], begin, current);
         }
-      }
+        if (previousIndices.length > 1) {
+          assign(r - 1, previousIndices[1], current + 1, end);
+        }
+      };
+
+      assign(wb.length - 1, 0, 0, rows);
 
       // swap columns and rows
       return iota(rows).map((y) => iota(table.length).map((x) => table[x][y]));

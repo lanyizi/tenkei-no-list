@@ -9,7 +9,7 @@ export class Tournament {
   losersRounds: number[][];
 
   constructor(players: string[]) {
-    if(players.length > 64) {
+    if (players.length > 64) {
       throw 'too many players';
     }
     this.players = players.slice();
@@ -93,13 +93,13 @@ export class Tournament {
     const roundsFilterer = (rounds: number[][]) => {
       return rounds.map(round => round.filter(m => {
         const match = this.matches[m];
-        const isPseudoPlayer = 
+        const isPseudoPlayer =
           (x: number | null) => x !== null && x >= this.players.length;
-        if(isPseudoPlayer(match.p1)) {
+        if (isPseudoPlayer(match.p1)) {
           this.winMatch(match, 'p2');
           return false;
         }
-        else if(isPseudoPlayer(match.p2)) {
+        else if (isPseudoPlayer(match.p2)) {
           this.winMatch(match, 'p1');
           return false;
         }
@@ -112,10 +112,10 @@ export class Tournament {
 
   winMatch(match: Match, winner: 'p1' | 'p2') {
     const distribute = (target: Match, player: number) => {
-      if(target.p1 === null) {
+      if (target.p1 === null) {
         target.p1 = player;
       }
-      else if(target.p2 === null) {
+      else if (target.p2 === null) {
         target.p2 = player;
       }
       else {
@@ -123,16 +123,20 @@ export class Tournament {
       }
     }
 
-    if(match[winner] === null || match.p1 === null || match.p2 === null) {
+    if (match.p1 === null || match.p2 === null) {
       throw 'cannot win with null players';
     }
 
     match.winner = match[winner];
+    if (match.winner === null) {
+      throw 'cannot win with null players';
+    }
+
     const loser = winner === 'p1' ? match.p2 : match.p1;
-    if(match.winnerNext !== null) {
+    if (match.winnerNext !== null) {
       distribute(this.matches[match.winnerNext], match.winner);
     }
-    if(match.loserNext !== null) {
+    if (match.loserNext !== null) {
       distribute(this.matches[match.loserNext], loser);
     }
   }

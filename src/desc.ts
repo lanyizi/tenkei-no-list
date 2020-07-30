@@ -11,7 +11,7 @@ type PlayerDesc = {
 }
 
 export type MatchDesc = {
-  players: PlayerDesc[]
+  players: PlayerDesc[];
   first: number;
   last: number;
 }
@@ -39,7 +39,7 @@ const players = (): [number, number][] => [
   [25, 40],
   [9, 56],
   [24, 41],
-  [4, 64],
+  [4, 61],
   [29, 36],
   [13, 52],
   [20, 45],
@@ -65,7 +65,7 @@ const players = (): [number, number][] => [
   [22, 43],
 ]
 
-export const getDesc = () => {
+const generateDesc = () => {
   const winners: MatchDesc[][] = [[]];
   const losers: MatchDesc[][] = [[]];
   winners[1] = players().map((players, i): MatchDesc => ({
@@ -221,13 +221,11 @@ export const getDesc = () => {
     last: 125
   }]
 
-  test(winners, losers);
-
   return { winners, losers }
 }
 
 const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
-  const players: (Label.Winners | undefined)[] = [];
+  const players: (Label.Player | undefined)[] = [];
   const matches: Label[] = []
 
   if (winners[1][0].first !== 1 || winners[1][31].last !== 32) {
@@ -241,7 +239,7 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
       throw 'test - unexpected player size';
     }
     for (const player of desc.players) {
-      if (player.from !== Label.Winners) {
+      if (player.from !== Label.Player) {
         throw 'test - unexpected label';
       }
       if (player.first !== player.last) {
@@ -265,7 +263,7 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
     if (i == 0) {
       return;
     }
-    if (l !== Label.Winners) {
+    if (l !== Label.Player) {
       throw 'test - unexpected player list content';
     }
   })
@@ -301,14 +299,17 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
     }
   }
 
-  if (matches.length !== 128) {
+  if (matches.length !== 127) {
     throw 'test - unexpected match list length';
   }
-  if (matches.slice(1).some(x => x !== Label.Winners && x !== Label.Losers)) {
+
+  if ([...matches].slice(1).some(x => {
+    x !== Label.Winners && x !== Label.Losers
+  })) {
     throw 'test - unexpected match list content';
   }
 
-  for (const descs of winners.slice(2)) {
+  for (const descs of [...winners].slice(2)) {
     for (const player of descs[0].players) {
       const { comp, next } = getHelpers(player);
       for (let i = player.first; comp(i); i = next(i)) {
@@ -319,7 +320,7 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
     }
   }
 
-  for (const descs of losers.slice(1)) {
+  for (const descs of [...losers].slice(1)) {
     for (const desc of descs) {
       for (const player of desc.players) {
         const { comp, next } = getHelpers(player);
@@ -331,4 +332,10 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
       }
     }
   }
+}
+
+export const getDesc = () => {
+  const { winners, losers } = generateDesc();
+  test(winners, losers);
+  return { winners, losers };
 }

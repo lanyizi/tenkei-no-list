@@ -1,19 +1,29 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <brackets v-if="tournament" :model="tournament"/>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+import Brackets from './components/Brackets.vue';
+import { Tournament } from './models';
 
 export default Vue.extend({
   name: 'App',
   components: {
-    HelloWorld
-  }
+    Brackets
+  },
+  data: () => ({
+    playerList: [
+      '节操问题', 
+      '节操提问', 
+      '问题节操', 
+      '洁草闻啼'
+    ],
+    tournament: null as Tournament | null
+  })
 });
 </script>
 

@@ -229,55 +229,55 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
   const matches: Label[] = []
 
   if (winners[1][0].first !== 1 || winners[1][31].last !== 32) {
-    throw 'test - unexpected';
+    throw Error('test - unexpected');
   }
   for (const desc of winners[1]) {
     if (desc.first !== desc.last) {
-      throw 'test - unexpected';
+      throw Error('test - unexpected');
     }
     if (desc.players.length !== 2) {
-      throw 'test - unexpected player size';
+      throw Error('test - unexpected player size');
     }
     for (const player of desc.players) {
       if (player.from !== Label.Player) {
-        throw 'test - unexpected label';
+        throw Error('test - unexpected label');
       }
       if (player.first !== player.last) {
-        throw 'test - unexpected';
+        throw Error('test - unexpected');
       }
       if (players[player.first] !== undefined) {
-        throw 'test - unexpected already set player';
+        throw Error('test - unexpected already set player');
       }
       players[player.first] = player.from;
     }
     if (matches[desc.first] !== undefined) {
-      throw 'test - unexpected match list content';
+      throw Error('test - unexpected match list content');
     }
     matches[desc.first] = Label.Winners;
   }
 
   if (players.length !== 65) {
-    throw 'test - unexpected player list';
+    throw Error('test - unexpected player list');
   }
   players.forEach((l, i) => {
     if (i == 0) {
       return;
     }
     if (l !== Label.Player) {
-      throw 'test - unexpected player list content';
+      throw Error('test - unexpected player list content');
     }
   })
 
   for (const descs of winners.slice(2)) {
     if (descs.length !== 1) {
-      throw 'test - unexpected';
+      throw Error('test - unexpected');
     }
 
     const desc = descs[0];
     const { comp, next } = getHelpers(desc);
     for (let i = desc.first; comp(i); i = next(i)) {
       if (matches[i] !== undefined) {
-        throw 'test - unexpected match list content';
+        throw Error('test - unexpected match list content');
       }
       matches[i] = Label.Winners;
     }
@@ -285,14 +285,14 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
 
   for (const descs of losers.slice(1)) {
     if (descs.length !== 1 && descs.length !== 2) {
-      throw 'test - unexpected';
+      throw Error('test - unexpected');
     }
 
     for (const desc of descs) {
       const { comp, next } = getHelpers(desc);
       for (let i = desc.first; comp(i); i = next(i)) {
         if (matches[i] !== undefined) {
-          throw 'test - unexpected match list content';
+          throw Error('test - unexpected match list content');
         }
         matches[i] = Label.Losers;
       }
@@ -300,13 +300,13 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
   }
 
   if (matches.length !== 127) {
-    throw 'test - unexpected match list length';
+    throw Error('test - unexpected match list length');
   }
 
   if ([...matches].slice(1).some(x => {
     x !== Label.Winners && x !== Label.Losers
   })) {
-    throw 'test - unexpected match list content';
+    throw Error('test - unexpected match list content');
   }
 
   for (const descs of [...winners].slice(2)) {
@@ -314,7 +314,7 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
       const { comp, next } = getHelpers(player);
       for (let i = player.first; comp(i); i = next(i)) {
         if (matches[i] !== player.from) {
-          throw 'test - unexpected player from - match list'
+          throw Error('test - unexpected player from - match list')
         }
       }
     }
@@ -326,7 +326,7 @@ const test = (winners: MatchDesc[][], losers: MatchDesc[][]) => {
         const { comp, next } = getHelpers(player);
         for (let i = player.first; comp(i); i = next(i)) {
           if (matches[i] !== player.from) {
-            throw 'test - unexpected player from - match list'
+            throw Error('test - unexpected player from - match list')
           }
         }
       }

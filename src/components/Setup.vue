@@ -4,7 +4,7 @@
 
     </table>
     <single-selection
-      :descriptions="[$t('singleElimination'), $t('doubleElimination')]"
+      :descriptions="[$t('generic.singleElimination'), $t('generic.doubleElimination')]"
     >
     </single-selection>
   </div>
@@ -15,6 +15,6 @@ import SingleSelection from "./SingleSelection.vue";
 export default Vue.extend({
   components: {
     SingleSelection
-  }
+  },
 })
 </script>

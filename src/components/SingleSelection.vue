@@ -2,7 +2,7 @@
   <div>
     <div v-for="(description, i) in descriptions" :key="description">
       <label>
-        <input type="radio" :checked="i === value" :input="$emit('input', i)" />
+        <input type="radio" :checked="i === value" @change="$emit('input', i)" />
         {{ description }}
       </label>
     </div>

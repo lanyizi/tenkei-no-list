@@ -5,6 +5,7 @@ import { getOrigins } from './tournament';
 import { Information } from '@/models/setup';
 
 export class DoubleElimination implements Tournament {
+  status = 'started' as const;
   information: Information;
   players: string[];
   matches: Match[];

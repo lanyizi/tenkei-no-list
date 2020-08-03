@@ -3,6 +3,7 @@ import { iota } from '@/utils';
 import { Information } from '@/models/setup';
 
 export class SingleElimination implements Tournament {
+  status = 'started' as const;
   information: Information;
   matches: Match[];
   winnersRounds: number[][];

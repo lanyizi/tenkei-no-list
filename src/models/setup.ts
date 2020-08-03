@@ -19,6 +19,7 @@ export type Information = {
 }
 
 export class Setup {
+  status = 'setup' as const;
   information: Information;
   settings: Settings = {
     mode: 'de',

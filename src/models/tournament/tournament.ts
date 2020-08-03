@@ -15,6 +15,7 @@ export class Match {
 }
 
 export interface Tournament {
+  status: 'started';
   information: Information;
   players: string[];
   matches: Match[];

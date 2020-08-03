@@ -1,4 +1,4 @@
-import { Match, Tournament } from './tournament';
+import { Match, Tournament } from '@/models/tournament';
 
 enum ValidationErrorType {
   ModifyingUnmodifiableFields,

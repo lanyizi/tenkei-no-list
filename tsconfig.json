@@ -11,13 +11,19 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "alwaysStrict": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "types": [
+      "webpack-env",
+      "webpack",
       "webpack-env"
     ],
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@texts/*": [
+        "texts/*"
       ]
     },
     "lib": [
@@ -25,7 +31,7 @@
       "dom",
       "dom.iterable",
       "scripthost"
-    ],
+    ]
   },
   "include": [
     "src/**/*.ts",

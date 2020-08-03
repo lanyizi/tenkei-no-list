@@ -14,11 +14,12 @@ export type Information = {
   organizer: number;
   referees: number[];
   tournamentDate: number;
+  name: string;
   description: string;
 }
 
 export class Setup {
-  info: Information;
+  information: Information;
   settings: Settings = {
     mode: 'de',
     hasExtraMatch: true
@@ -26,10 +27,11 @@ export class Setup {
   players: string[] = [];
 
   constructor(organizer: number) {
-    this.info = {
+    this.information = {
       organizer,
       referees: [],
       tournamentDate: Date.now(),
+      name: '',
       description: ''
     }
   }

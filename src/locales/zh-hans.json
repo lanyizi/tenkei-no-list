@@ -1,0 +1,34 @@
+{
+  "generic": {
+    "add": "添加",
+    "remove": "移除",
+    "singleElimination": "蛋白质",
+    "doubleElimination": "双败制"
+  },
+  "tournamentSetup": {
+    "title": "比赛设置",
+    "playerListSettings": {
+      "title": "选手列表",
+      "cannotAdd": "比赛已经开始，不能再添加新选手了",
+      "addHint": "可以一次性添加多位选手，每行一个",
+      "dragHint": "拖拽以便更改选手顺序（虽然不知道手动设置选手顺序有什么用处←_←）",
+      "random": "随机打乱选手列表顺序",
+      "rename": "重命名",
+      "doubleEliminationLimitExceeded": "由于技术限制，双败制比赛目前只支持最多64位选手（单败制没有这个限制）",
+      "limitExceeded": "选手列表里的人还是太多了一点"
+    },
+    "tournamentType": "比赛类型",
+    "hasThirdPlaceMatch": "加入季军赛",
+    "doubleEliminationFinalsSettings": {
+      "title": "双败制总决赛",
+      "yesExtraMatch": "败者组冠军需要击败胜者组冠军两轮才能赢得胜利",
+      "noExtraMatch": "只打一轮，胜者组冠军以一分的优势开局"
+    },
+    "referees": {
+      "title": "赛务设置",
+      "description": "可以请其他赛务来帮忙，他们将会有权限修改比赛设置以及选手列表",
+      "list": "赛务列表"
+    }
+  }
+  
+}

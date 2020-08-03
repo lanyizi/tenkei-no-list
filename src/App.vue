@@ -7,8 +7,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import Brackets from './components/Brackets.vue';
-import { Tournament } from './models';
+import Brackets from '@/components/Brackets.vue';
+import { Tournament } from '@/models/tournament';
 
 export default Vue.extend({
   name: 'App',

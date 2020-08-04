@@ -1,9 +1,10 @@
 import { Match, Tournament, getOrigins } from "./tournament";
 import { iota } from '@/utils';
-import { Information } from '@/models/setup';
+import { Information, SingleEliminationSettings } from '@/models/setup';
 
 export class SingleElimination implements Tournament {
   status = 'started' as const;
+  settings: SingleEliminationSettings;
   information: Information;
   matches: Match[];
   winnersRounds: number[][];
@@ -18,10 +19,11 @@ export class SingleElimination implements Tournament {
     if (players.length < 4 && hasThirdPlace) {
       throw Error('too less players to have third place');
     }
-    
-    this.information = { 
-      ...information, 
-      referees: information.referees.slice() 
+
+    this.settings = { mode: 'se', hasThirdPlace };
+    this.information = {
+      ...information,
+      referees: information.referees.slice()
     };
     this.players = players.slice();
     const nearestPowerOf2 = (n: number) => 1 << 31 - Math.clz32(n);

@@ -2,10 +2,11 @@ import { Match, Tournament, winMatch } from ".";
 import { nCopies, iota } from '@/utils';
 import { getDesc, getHelpers, MatchDesc, Label } from './desc';
 import { getOrigins } from './tournament';
-import { Information } from '@/models/setup';
+import { Information, DoubleEliminationSettings } from '@/models/setup';
 
 export class DoubleElimination implements Tournament {
   status = 'started' as const;
+  settings: DoubleEliminationSettings;
   information: Information;
   players: string[];
   matches: Match[];
@@ -13,16 +14,17 @@ export class DoubleElimination implements Tournament {
   losersRounds: number[][];
   origins: Map<number, number[]>;
 
-  constructor(information: Information, players: string[]) {
+  constructor(information: Information, players: string[], hasExtraMatch: boolean) {
     if (players.length < 2) {
       throw Error('too less players');
     }
     if (players.length > 64) {
       throw Error('too many players');
     }
-    this.information = { 
-      ...information, 
-      referees: information.referees.slice() 
+    this.settings = { mode: 'de', hasExtraMatch };
+    this.information = {
+      ...information,
+      referees: information.referees.slice()
     };
     this.players = players.slice();
     this.matches = nCopies(127, () => new Match(null));
@@ -158,7 +160,7 @@ export class DoubleElimination implements Tournament {
     this.winnersRounds = roundsFilterer(this.winnersRounds);
     this.losersRounds = roundsFilterer(this.losersRounds);
     this.origins = getOrigins(
-      this, 
+      this,
       this.winnersRounds.flat().concat(this.losersRounds.flat())
     );
   }

@@ -5,6 +5,12 @@
     "singleElimination": "单败制",
     "doubleElimination": "双败制"
   },
+  "information": {
+    "organizer": "举办方",
+    "date": "比赛日期",
+    "description": "比赛介绍",
+    "referees": "赛务"
+  },
   "tournamentSetup": {
     "title": "比赛设置",
     "playerListSettings": {
@@ -24,11 +30,7 @@
       "yes": "败者组冠军需要击败胜者组冠军两轮才能赢得胜利",
       "no": "只打一轮，胜者组冠军以一分的优势开局"
     },
-    "referees": {
-      "title": "赛务设置",
-      "description": "可以请其他赛务来帮忙，他们将会有权限修改比赛设置以及选手列表",
-      "list": "赛务列表"
-    }
+    "refereesDescription": "可以请其他赛务来帮忙，他们将会有权限修改比赛设置以及选手列表"
   }
   
 }

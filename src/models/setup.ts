@@ -1,14 +1,14 @@
-type SingleEliminationSettings = {
+export type SingleEliminationSettings = {
   mode: 'se';
   hasThirdPlace: boolean;
 }
 
-type DoubleEliminationSettings = {
+export type DoubleEliminationSettings = {
   mode: 'de';
   hasExtraMatch: boolean;
 }
 
-type Settings = SingleEliminationSettings | DoubleEliminationSettings;
+export type Settings = SingleEliminationSettings | DoubleEliminationSettings;
 
 export type Information = {
   organizer: number;
@@ -31,7 +31,7 @@ export class Setup {
     this.information = {
       organizer,
       referees: [],
-      tournamentDate: Date.now(),
+      tournamentDate: Math.floor(Date.now() / 1000),
       name: '',
       description: ''
     }

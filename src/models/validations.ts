@@ -1,4 +1,5 @@
 import { Match, Tournament } from '@/models/tournament';
+import { Information } from './setup';
 
 enum ValidationErrorType {
   ModifyingUnmodifiableFields,
@@ -69,4 +70,10 @@ export const matchValidator = (
     throw new ValidationError(ValidationErrorType.SettingInvalidPlayers);
   }
 
+}
+
+export const informationValidator = (old: Information, edited: Information) => {
+  if(old.organizer !== edited.organizer) {
+    throw Error('organizer change not supported yet');
+  }
 }

@@ -1,4 +1,5 @@
-import { Information } from '@/models/setup'
+import { Information, Settings } from '@/models/setup'
+
 
 export class Match {
   constructor(winnerNext: number | null) {
@@ -16,6 +17,7 @@ export class Match {
 
 export interface Tournament {
   status: 'started';
+  settings: Settings;
   information: Information;
   players: string[];
   matches: Match[];

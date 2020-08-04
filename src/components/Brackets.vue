@@ -3,15 +3,15 @@
     <table>
       <tr v-for="(row, j) in winnersBracket" :key="j">
         <td v-for="(element, i) in row" in table :key="i">
-          <match v-if="element != null" :value="element" @click="onMatchClick(element.id)"></match>
-          <match-editor
+          <Match v-if="element != null" :value="element" @click="onMatchClick(element.id)"></Match>
+          <MatchEditor
             v-if="element != null && element.id === matchEditorId"
             :best-of="3"
             :winner-editable="winnerEditable"
             v-model="currentEdit"
             @match-edit-confirmed="onMatchEditConfimed"
             @match-edit-cancelled="matchEditorId = null"
-          ></match-editor>
+          ></MatchEditor>
         </td>
       </tr>
     </table>

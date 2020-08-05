@@ -1,14 +1,28 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/new">New</router-link> |
+      <router-link to="/">Home</router-link>|
+      <router-link to="/new">New</router-link>|
       <router-link to="/about">About</router-link>
     </div>
-    <router-view/>
+    <Auth :referee-names="refereeNames" v-model="user"></Auth>
+    <router-view :user="user" :referee-names="refereeNames" />
   </div>
 </template>
+<script lang="ts">
+import Vue from "vue";
+import Auth from "@/components/Auth.vue";
 
+export default Vue.extend({
+  components: {
+    Auth
+  },
+  data: () => ({
+    user: -1,
+    refereeNames: ["miao", "mie"],
+  }),
+});
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

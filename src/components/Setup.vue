@@ -12,7 +12,6 @@
         </tr>
         <tr>
           <td></td>
-
           <td>
             <textarea rows="1" v-model="playersInput"></textarea>
           </td>
@@ -23,8 +22,7 @@
         <tr v-for="(player, i) in players" :key="i">
           <td>{{i+1}}</td>
           <td>
-            <input type="text" v-if="players === editedPlayers" v-model="players[i]" />
-            <template v-else>{{player}}</template>
+            <input type="text" :value="players[i]" @input="updatePlayer(i, $event.target.value)" />
           </td>
           <td>
             <button @click="removePlayer(i)">{{ $t('generic.remove') }}</button>
@@ -70,57 +68,40 @@ export default Vue.extend({
   },
   data: () => ({
     playersInput: "",
-    editedPlayers: null as string[] | null,
-    editedInformation: {} as Partial<Information>,
-    editedSettings: null as Settings | null,
   }),
-  mounted() {
-    ((window as unknown) as any).ccomponent = this;
-  },
   methods: {
     addPlayers() {
       const newPlayers = this.playersInput
         .split("\n")
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
-      this.editedPlayers = this.players.concat(newPlayers);
+      this.players = this.players.concat(newPlayers);
+    },
+    updatePlayer(index: number, value: string) {
+      this.players = this.players.map((n, i) => (i !== index ? n : value));
     },
     removePlayer(index: number) {
-      this.editedPlayers = this.players.filter((_, i) => i !== index);
+      this.players = this.players.filter((_, i) => i !== index);
     },
-    save() {
-      const updating = { ...this.value };
-      if (updating.status === "setup") {
-        if (this.editedSettings !== null) {
-          updating.settings = this.editedSettings;
-        }
-      }
-
-      updating.information = {
-        ...updating.information,
-        ...this.editedInformation,
-      };
-
-      if (this.editedPlayers !== null) {
-        updating.players = this.editedPlayers;
-      }
+    update<K extends keyof Model>(updated: Partial<Model>) {
+      this.$emit("input", { ...this.value, ...updated });
     },
   },
   computed: {
     information: {
       get(): Information {
-        return { ...this.value.information, ...this.editedInformation };
+        return this.value.information;
       },
-      set(value: Information) {
-        this.editedInformation = value;
+      set(information: Information) {
+        this.update({ information });
       },
     },
     players: {
       get(): string[] {
-        return this.editedPlayers ?? this.value.players;
+        return this.value.players;
       },
-      set(value: string[]) {
-        this.editedPlayers = value;
+      set(players: string[]) {
+        this.update({ players });
       },
     },
     types(): ["se" | "de", string][] {
@@ -131,10 +112,10 @@ export default Vue.extend({
     },
     settings: {
       get(): Settings {
-        return this.editedSettings || this.value.settings;
+        return this.value.settings;
       },
-      set(value: Settings) {
-        this.editedSettings = value;
+      set(settings: Settings) {
+        this.update({ settings });
       },
     },
     typeIndex: {

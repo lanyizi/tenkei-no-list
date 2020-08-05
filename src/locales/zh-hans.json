@@ -2,10 +2,21 @@
   "generic": {
     "add": "添加",
     "remove": "移除",
+    "continue": "继续",
+    "createTournament": "创建比赛",
     "singleElimination": "单败制",
     "doubleElimination": "双败制"
   },
+  "auth": {
+    "requireLogIn": "需要登录才能继续操作",
+    "currentUser": "当前用户：{username}",
+    "username": "用户名",
+    "password": "密码",
+    "login": "登录",
+    "logout": "登出"
+  },
   "information": {
+    "name": "比赛名称",
     "organizer": "举办方",
     "date": "比赛日期",
     "description": "比赛介绍",
@@ -30,7 +41,10 @@
       "yes": "败者组冠军需要击败胜者组冠军两轮才能赢得胜利",
       "no": "只打一轮，胜者组冠军以一分的优势开局"
     },
-    "refereesDescription": "可以请其他赛务来帮忙，他们将会有权限修改比赛设置以及选手列表"
+    "refereesDescription": "可以请其他赛务来帮忙，他们将会有权限修改比赛设置以及选手列表",
+    "createAndStart": "创建并开始比赛",
+    "start": "开始比赛",
+    "startWarning": "开始比赛后，将无法再修改比赛设置或增加/减少玩家，是否确认？"
   }
   
 }

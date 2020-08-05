@@ -1,7 +1,74 @@
 import { Match, Tournament } from '@/models/tournament';
 import { Information } from './setup';
+import { keys } from 'lodash';
+
+const has = <P extends PropertyKey>(
+  target: object,
+  property: P
+): target is { [K in P]: unknown } => {
+  // The `in` operator throws a `TypeError` for non-object values.
+  return property in target;
+}
+
+const isArray = <T>(
+  array: unknown,
+  elementChecker: (e: unknown) => e is T
+): array is T[] => {
+  return Array.isArray(array) && array.every(elementChecker);
+}
+
+const isObject = (object: unknown): object is object => {
+  return typeof object === 'object' && object !== null;
+}
+
+const isNumber = (e: unknown): e is number => typeof e === 'number';
+
+export const isMatch = (match: unknown): match is Match => {
+  const keys: (keyof Match)[] = [
+    'p1',
+    'p2',
+    'p1Score',
+    'p2Score',
+    'winner',
+    'winnerNext',
+    'loserNext'
+  ];
+
+  if (!isObject(match)) {
+    return false;
+  }
+
+  return keys.every(<K extends keyof Match>(k: K) => {
+    if (has(match, k)) {
+      return isNumber(match[k]) || match[k] === null
+    }
+    return false;
+  });
+}
+
+export const isInformation = (info: unknown): info is Information => {
+  if (!isObject(info)) {
+    return false;
+  }
+
+  if (!has(info, 'referees') || !isArray(info.referees, isNumber)) {
+    return false;
+  }
+  type Tuple = [keyof Information, 'string' | 'number'];
+  const fields: Tuple[] = [
+    ['name', 'string'],
+    ['description', 'string'],
+    ['organizer', 'number'],
+    ['organizer', 'number'],
+  ];
+  return fields.every(<T extends Tuple>([k, t]: T) => {
+    return has(info, k) && typeof info[k] === t;
+  });
+}
 
 enum ValidationErrorType {
+  InvalidFormat,
+  NotImplemented,
   ModifyingUnmodifiableFields,
   SettingWinnerWhenNotReady,
   ChangingConfirmedWinner,
@@ -20,8 +87,11 @@ export class ValidationError extends Error {
 export const matchValidator = (
   tournament: Tournament,
   matchId: number,
-  newMatch: Match
+  newMatch: unknown
 ) => {
+  if (!isMatch(newMatch)) {
+    throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
   const old = tournament.matches[matchId];
   const unmodifiable = ['p1', 'p2', 'loserNext', 'winnerNext'] as const;
   if (unmodifiable.some(field => old[field] !== newMatch[field])) {
@@ -69,11 +139,23 @@ export const matchValidator = (
     }
     throw new ValidationError(ValidationErrorType.SettingInvalidPlayers);
   }
-
 }
 
-export const informationValidator = (old: Information, edited: Information) => {
-  if(old.organizer !== edited.organizer) {
-    throw Error('organizer change not supported yet');
+export const informationValidator = (old: Information, edited: unknown) => {
+  if (!isInformation(edited)) {
+    throw new ValidationError(ValidationErrorType.InvalidFormat);
   }
+  if (old.organizer !== edited.organizer) {
+    throw new ValidationError(ValidationErrorType.NotImplemented);
+  }
+}
+
+export const refereeChanged = (old: Information, edited: unknown) => {
+  if (!isInformation(edited)) {
+    throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
+  if(old.referees.length !== edited.referees.length) {
+    return true;
+  }
+  return old.referees.some((r, i) => r !== edited.referees[i]);
 }

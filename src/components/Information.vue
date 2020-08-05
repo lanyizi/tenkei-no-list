@@ -2,7 +2,7 @@
   <div class="information">
     <h3>
       <span v-if="readOnly">{{ name }}</span>
-      <input v-else type="text" v-model="name" />
+      <input v-else type="text" :placeholder="$t('information.name')" v-model="name" />
     </h3>
     <span class="information-entry">
       <span class="information-key">{{$t('information.organizer')}}</span>

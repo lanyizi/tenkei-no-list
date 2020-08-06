@@ -15,6 +15,7 @@
 import Vue from "vue";
 export default Vue.extend({
   props: {
+    apiUrl: String,
     value: Number,
     refereeNames: Array as () => string[],
   },
@@ -23,8 +24,21 @@ export default Vue.extend({
     password: "",
   }),
   methods: {
-    logIn() {
-      this.$emit("input", 0);
+    async logIn() {
+      const token = `${btoa(this.username)} ${btoa(this.password)}`;
+      const response = await fetch(`${this.apiUrl}/~check`, {
+        method: 'get',
+        headers: {
+          Authentication: token,
+        },
+        mode: 'cors'
+      });
+      const json = await response.json();
+      const user = parseInt(json.user) || -1;
+      this.$emit("input", user);
+      if(user !== -1) {
+        this.$emit("token", token);
+      }
     },
   },
 });

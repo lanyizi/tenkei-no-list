@@ -5,8 +5,8 @@
       <router-link to="/new">New</router-link>|
       <router-link to="/about">About</router-link>
     </div>
-    <Auth :referee-names="refereeNames" v-model="user"></Auth>
-    <router-view :user="user" :referee-names="refereeNames" />
+    <Auth :api-url="apiUrl" :referee-names="refereeNames" v-model="user" @token="token = $event"></Auth>
+    <router-view :api-url="apiUrl" :user="user" :token="token" :referee-names="refereeNames" />
   </div>
 </template>
 <script lang="ts">
@@ -18,7 +18,9 @@ export default Vue.extend({
     Auth
   },
   data: () => ({
+    apiUrl: 'http://192.168.43.228:4000',
     user: -1,
+    token: '',
     refereeNames: ["miao", "mie"],
   }),
 });

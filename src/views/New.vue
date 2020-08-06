@@ -25,7 +25,9 @@ import { Setup } from "@/models/setup";
 export default Vue.extend({
   components: { SetupComponent },
   props: {
+    apiUrl: String,
     user: Number,
+    token: String,
     refereeNames: Array as () => string[],
   },
   mounted() {
@@ -41,6 +43,14 @@ export default Vue.extend({
       this.setup.information.name = this.name;
     },
     async createTournament() {
+      fetch(`${this.apiUrl}/tournaments`, {
+        method: 'post',
+        headers: {
+          Authentication: this.token
+        },
+        mode: 'cors',
+        body: JSON.stringify(this.setup)
+      })
       alert("not implemented");
     },
     async createAndStart() {

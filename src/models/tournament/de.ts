@@ -1,8 +1,13 @@
 import { Match, Tournament, winMatch } from ".";
-import { nCopies, iota } from '@/utils';
+import { nCopies, iota, has } from '@/utils';
 import { getDesc, getHelpers, MatchDesc, Label } from './desc';
-import { getOrigins } from './tournament';
-import { Information, DoubleEliminationSettings } from '@/models/setup';
+import { getOrigins, isTournament, isRounds } from './tournament';
+import {
+  Information,
+  DoubleEliminationSettings,
+  isDoubleEliminationSettings
+} from '@/models/setup';
+import { isNumber, isNull } from 'lodash-es';
 
 export class DoubleElimination implements Tournament {
   status = 'started' as const;
@@ -12,7 +17,7 @@ export class DoubleElimination implements Tournament {
   matches: Match[];
   winnersRounds: number[][];
   losersRounds: number[][];
-  origins: Map<number, number[]>;
+  origins: Record<number, number[]>;
 
   constructor(information: Information, players: string[], hasExtraMatch: boolean) {
     if (players.length < 2) {
@@ -118,7 +123,7 @@ export class DoubleElimination implements Tournament {
       }
 
       const pseudoPlayer = winner === 'p1' ? match.p2 : match.p1;
-      const otherSource = losersOrigins.get(id)?.find(m => {
+      const otherSource = losersOrigins[id]?.find(m => {
         const match = this.matches[m];
         return [match.p1, match.p2].every(p => p !== pseudoPlayer);
       })
@@ -163,5 +168,15 @@ export class DoubleElimination implements Tournament {
       this,
       this.winnersRounds.flat().concat(this.losersRounds.flat())
     );
+  }
+
+  static isDoubleElimination(t: Tournament): t is DoubleElimination {
+    if (!isDoubleEliminationSettings(t.settings)) {
+      return false;
+    }
+
+    return ['winnersRounds', 'losersRounds'].every(k => {
+      has(t, k) && isRounds(t[k])
+    });
   }
 }

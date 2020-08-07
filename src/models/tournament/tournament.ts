@@ -1,5 +1,6 @@
-import { Information, Settings } from '@/models/setup'
-
+import { Setup, isSetup } from '@/models/setup'
+import { has, isArray } from '@/utils'
+import { isObject, isNumber } from 'lodash-es'
 
 export class Match {
   constructor(winnerNext: number | null) {
@@ -14,15 +15,46 @@ export class Match {
   p2Score: number | null = null
   winner: number | null = null
 }
+export const isMatch = (match: unknown): match is Match => {
+  const keys: (keyof Match)[] = [
+    'p1',
+    'p2',
+    'p1Score',
+    'p2Score',
+    'winner',
+    'winnerNext',
+    'loserNext'
+  ];
 
-export interface Tournament {
+  if (!isObject(match)) {
+    return false;
+  }
+
+  return keys.every(<K extends keyof Match>(k: K) => {
+    if (has(match, k)) {
+      return isNumber(match[k]) || match[k] === null;
+    }
+    return false;
+  });
+}
+
+export interface Tournament extends Setup {
   status: 'started';
-  settings: Settings;
-  information: Information;
-  players: string[];
   matches: Match[];
-  winnersRounds: number[][];
-  origins: Map<number, number[]>;
+  origins: Record<number, number[]>;
+}
+export const isTournament = (t: Setup): t is Tournament => {
+  if (t.status !== 'started') {
+    return false;
+  }
+  if (!has(t, 'matches') || !isArray(t.matches, isMatch)) {
+    return false;
+  }
+  if (!has(t, 'origins') || !isObject(t.origins)) {
+    return false;
+  }
+  // make sure all values of origins are number array
+  return Object.values(t.origins).every(x => isArray(x, isNumber));
 }
 
 export const winMatch = (
@@ -63,14 +95,18 @@ export const winMatch = (
 
 export const getOrigins = (tournament: Tournament, matches: number[]) =>
   matches
-    .reduce((map, m) => {
+    .reduce((record, m) => {
       const match = tournament.matches[m];
       const setOrAppend = (key: number | null) => {
         if (key !== null) {
-          map.set(key, (map.get(key) || []).concat(m));
+          record[key] = (record[key] || []).concat(m);
         }
       };
       setOrAppend(match.winnerNext);
       setOrAppend(match.loserNext);
-      return map;
-    }, new Map<number, number[]>());
+      return record;
+    }, Object.create(null) as Record<number, number[]>);
+
+export const isRounds = (r: unknown): r is number[][] => {
+  return isArray(r, (e): e is number[] => isArray(e, isNumber));
+}

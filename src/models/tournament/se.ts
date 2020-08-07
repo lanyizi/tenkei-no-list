@@ -1,6 +1,17 @@
-import { Match, Tournament, getOrigins } from "./tournament";
-import { iota } from '@/utils';
-import { Information, SingleEliminationSettings } from '@/models/setup';
+import {
+  Match,
+  Tournament,
+  getOrigins,
+  isTournament,
+  isRounds
+} from "./tournament";
+import { iota, has } from '@/utils';
+import {
+  Information,
+  SingleEliminationSettings,
+  isSingleEliminationSettings
+} from '@/models/setup';
+import { isNumber, isNull } from 'lodash-es';
 
 export class SingleElimination implements Tournament {
   status = 'started' as const;
@@ -9,7 +20,7 @@ export class SingleElimination implements Tournament {
   matches: Match[];
   winnersRounds: number[][];
   thirdPlaceMatch: number | null;
-  origins: Map<number, number[]>;
+  origins: Record<number, number[]>;
   players: string[];
 
   constructor(information: Information, players: string[], hasThirdPlace: boolean) {
@@ -106,5 +117,22 @@ export class SingleElimination implements Tournament {
     }
 
     this.origins = getOrigins(this, iota(this.matches.length));
+  }
+
+  static isSingleElimination(t: Tournament): t is SingleElimination {
+    if (!isSingleEliminationSettings(t.settings)) {
+      return false;
+    }
+
+    if (!has(t, 'winnersRounds') || !isRounds(t.winnersRounds)) {
+      return false;
+    }
+    if (!has(t, 'thirdPlaceMatch')) {
+      return false;
+    }
+    if (!isNumber(t.thirdPlaceMatch) && !isNull(t.thirdPlaceMatch)) {
+      return false;
+    }
+    return true;
   }
 }

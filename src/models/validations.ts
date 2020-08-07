@@ -1,80 +1,20 @@
-import { Match, Tournament } from '@/models/tournament';
-import { Information } from './setup';
-import { keys } from 'lodash';
-
-const has = <P extends PropertyKey>(
-  target: object,
-  property: P
-): target is { [K in P]: unknown } => {
-  // The `in` operator throws a `TypeError` for non-object values.
-  return property in target;
-}
-
-const isArray = <T>(
-  array: unknown,
-  elementChecker: (e: unknown) => e is T
-): array is T[] => {
-  return Array.isArray(array) && array.every(elementChecker);
-}
-
-const isObject = (object: unknown): object is object => {
-  return typeof object === 'object' && object !== null;
-}
-
-const isNumber = (e: unknown): e is number => typeof e === 'number';
-
-export const isMatch = (match: unknown): match is Match => {
-  const keys: (keyof Match)[] = [
-    'p1',
-    'p2',
-    'p1Score',
-    'p2Score',
-    'winner',
-    'winnerNext',
-    'loserNext'
-  ];
-
-  if (!isObject(match)) {
-    return false;
-  }
-
-  return keys.every(<K extends keyof Match>(k: K) => {
-    if (has(match, k)) {
-      return isNumber(match[k]) || match[k] === null
-    }
-    return false;
-  });
-}
-
-export const isInformation = (info: unknown): info is Information => {
-  if (!isObject(info)) {
-    return false;
-  }
-
-  if (!has(info, 'referees') || !isArray(info.referees, isNumber)) {
-    return false;
-  }
-  type Tuple = [keyof Information, 'string' | 'number'];
-  const fields: Tuple[] = [
-    ['name', 'string'],
-    ['description', 'string'],
-    ['organizer', 'number'],
-    ['organizer', 'number'],
-  ];
-  return fields.every(<T extends Tuple>([k, t]: T) => {
-    return has(info, k) && typeof info[k] === t;
-  });
-}
+import { Tournament, isMatch, SingleElimination, DoubleElimination } from '@/models/tournament';
+import { Information, isInformation, Setup, isSetup } from '@/models/setup';
+import { isTournament } from './tournament/tournament';
 
 enum ValidationErrorType {
   InvalidFormat,
   NotImplemented,
+  InvalidID,
+  RevertingTournamentStatus,
   ModifyingUnmodifiableFields,
   SettingWinnerWhenNotReady,
   ChangingConfirmedWinner,
   ChangingConfirmedLoser,
   SettingInvalidPlayers
 }
+
+export type WithID<T> = T & { id: number }
 
 export class ValidationError extends Error {
   errorType: ValidationErrorType;
@@ -119,7 +59,7 @@ export const matchValidator = (
     }
   }
 
-  const origin = tournament.origins.get(matchId)?.map(m => tournament.matches[m]);
+  const origin = tournament.origins[matchId]?.map(m => tournament.matches[m]);
   const loserSources = origin
     ?.filter(match => match.loserNext === matchId) || [];
   const winnerSources = origin
@@ -141,11 +81,14 @@ export const matchValidator = (
   }
 }
 
-export const informationValidator = (old: Information, edited: unknown) => {
+export const informationValidator = (
+  old: Information | undefined,
+  edited: unknown
+) => {
   if (!isInformation(edited)) {
     throw new ValidationError(ValidationErrorType.InvalidFormat);
   }
-  if (old.organizer !== edited.organizer) {
+  if (old !== undefined && old.organizer !== edited.organizer) {
     throw new ValidationError(ValidationErrorType.NotImplemented);
   }
 }
@@ -154,8 +97,50 @@ export const refereeChanged = (old: Information, edited: unknown) => {
   if (!isInformation(edited)) {
     throw new ValidationError(ValidationErrorType.InvalidFormat);
   }
-  if(old.referees.length !== edited.referees.length) {
+  if (old.organizer !== edited.organizer) {
+    return true;
+  }
+  if (old.referees.length !== edited.referees.length) {
     return true;
   }
   return old.referees.some((r, i) => r !== edited.referees[i]);
+}
+
+export const tournamentValidator = (
+  old: WithID<Setup | Tournament> | undefined,
+  edited: unknown
+) => {
+  if (!isSetup(edited)) {
+    throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
+  informationValidator(old?.information, edited.information);
+  // make sure id isn't changed
+  if (old?.information !== (edited as Partial<WithID<object>>).id) {
+    throw new ValidationError(ValidationErrorType.InvalidID;)
+  }
+
+  if (edited.status !== 'started') {
+    if (old !== undefined && old.status === 'started') {
+      throw new ValidationError(ValidationErrorType.RevertingTournamentStatus);
+    }
+    return;
+  }
+
+  if (!isTournament(edited)) {
+    throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
+
+  switch (edited.settings.mode) {
+    case 'se':
+      if (!SingleElimination.isSingleElimination(edited)) {
+        throw new ValidationError(ValidationErrorType.InvalidFormat);
+      }
+      break;
+    case 'de':
+      if (!DoubleElimination.isDoubleElimination(edited)) {
+        throw new ValidationError(ValidationErrorType.InvalidFormat);
+      }
+      break;
+    default: throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
 }

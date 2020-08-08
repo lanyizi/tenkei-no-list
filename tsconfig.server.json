@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
+    "module": "commonjs",
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,
@@ -13,32 +13,19 @@
     "alwaysStrict": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "types": [
-      "webpack-env",
-      "webpack",
-      "webpack-env"
-    ],
+    "types": [],
     "paths": {
       "@/*": [
         "src/*"
       ],
-      "@texts/*": [
-        "texts/*"
-      ]
     },
     "lib": [
       "esnext",
-      "dom",
-      "dom.iterable",
-      "scripthost"
+      "ScriptHost"
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "api/**/*.ts",
   ],
   "exclude": [
     "node_modules"

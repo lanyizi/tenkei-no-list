@@ -1,0 +1,16 @@
+{
+  "tounaments": [],
+  "referees": [
+    {
+      "id": 0,
+      "username": "test",
+      "hash": "2iMeqXNFBpgGtGDKKpDdpCw/4oqTV5GR3YLjaSNMZkNPHJFSYIYiqJOjHDdvujT0JfXGDRZasDqfCZrERh0s/w=="
+    },
+    {
+      "id": 1,
+      "username": "AR",
+      "hash": "OxSqw8eDi/P+gQYFPJI64XbMz7sPx2B99EKIuhwsKwAj/JuA1nGihiers5s4qaSo2K3rDz6Lqq6wyyq2uNcAow=="
+    }
+  ],
+  "changes": []
+}

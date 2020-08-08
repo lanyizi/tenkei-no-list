@@ -1,17 +1,32 @@
-import { Tournament, isMatch, SingleElimination, DoubleElimination } from '@/models/tournament';
-import { Information, isInformation, Setup, isSetup } from '@/models/setup';
+import {
+  Tournament,
+  isMatch,
+  SingleElimination,
+  DoubleElimination
+} from '@/models/tournament';
+import {
+  Information,
+  isInformation,
+  Setup,
+  isSetup
+} from '@/models/setup';
 import { isTournament } from './tournament/tournament';
+import { Edit, isEdit } from './changes';
+import { isEqual } from 'lodash-es';
 
 enum ValidationErrorType {
-  InvalidFormat,
-  NotImplemented,
-  InvalidID,
-  RevertingTournamentStatus,
   ModifyingUnmodifiableFields,
+  EditingFromNonExistingData,
+  RevertingTournamentStatus,
   SettingWinnerWhenNotReady,
+  EditingFromIncorrectData,
   ChangingConfirmedWinner,
   ChangingConfirmedLoser,
-  SettingInvalidPlayers
+  SettingInvalidPlayers,
+  EditWithoutAnyEffect,
+  NotImplemented,
+  InvalidFormat,
+  InvalidID,
 }
 
 export type WithID<T> = T & { id: number }
@@ -116,7 +131,7 @@ export const tournamentValidator = (
   informationValidator(old?.information, edited.information);
   // make sure id isn't changed
   if (old?.information !== (edited as Partial<WithID<object>>).id) {
-    throw new ValidationError(ValidationErrorType.InvalidID;)
+    throw new ValidationError(ValidationErrorType.InvalidID)
   }
 
   if (edited.status !== 'started') {
@@ -142,5 +157,59 @@ export const tournamentValidator = (
       }
       break;
     default: throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
+}
+
+export const changesValidator = (tournament: Tournament, change: Edit) => {
+  if (!isEdit(change)) {
+    throw new ValidationError(ValidationErrorType.InvalidFormat);
+  }
+
+  if (isEqual(change.edited, change.previous)) {
+    throw new ValidationError(ValidationErrorType.EditWithoutAnyEffect);
+  }
+
+  if (change.type === 'nameEdit') {
+    if (tournament.players.includes(change.previous)) {
+      return;
+    }
+    throw new ValidationError(ValidationErrorType.EditingFromNonExistingData);
+  }
+
+  const current = tournament.matches[change.matchId]
+  if (current === undefined) {
+    throw new ValidationError(ValidationErrorType.EditingFromNonExistingData);
+  }
+  if (change.type === 'scoreEdit') {
+    if (!isEqual([current.p1Score, current.p2Score], change.previous)) {
+      throw new ValidationError(ValidationErrorType.EditingFromIncorrectData);
+    }
+    return;
+  }
+
+  // editing winner
+  if (change.previous !== current.winner) {
+    throw new ValidationError(ValidationErrorType.EditingFromIncorrectData);
+  }
+
+  const players = ['p1', 'p2'] as const;
+  if (players.some(f => current[f] === null) && current.winner !== null) {
+    throw new ValidationError(ValidationErrorType.SettingWinnerWhenNotReady);
+  }
+
+  if (current.winner !== null) {
+    const oldLoser = current.winner === current.p1 ? current.p2 : current.p1;
+    if (current.winnerNext !== null) {
+      const next = tournament.matches[current.winnerNext];
+      if (players.some(f => next[f] === current.winner)) {
+        throw new ValidationError(ValidationErrorType.ChangingConfirmedWinner);
+      }
+    }
+    if (current.loserNext !== null) {
+      const next = tournament.matches[current.loserNext];
+      if (players.some(f => next[f] === oldLoser)) {
+        throw new ValidationError(ValidationErrorType.ChangingConfirmedLoser);
+      }
+    }
   }
 }

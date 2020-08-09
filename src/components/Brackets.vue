@@ -22,8 +22,12 @@
 import Vue from "vue";
 import Match, { MatchVM, PlayerVM } from "./Match.vue";
 import MatchEditor from "./MatchEditor.vue";
-import { Tournament, SingleElimination, DoubleElimination } from "@/models/tournament";
-import { nCopies, notNull } from "../utils";
+import {
+  Tournament,
+  SingleElimination,
+  DoubleElimination,
+} from "@/models/tournament";
+import { nCopies, notNull } from "@/utils";
 
 type ElementVM = MatchVM | null;
 
@@ -115,9 +119,9 @@ export default Vue.extend({
     matchToVM(matchId: number): MatchVM {
       const match = this.model.matches[matchId];
       // who might come to this match
-      const origins = this.model.origins
-        .get(matchId)
-        ?.filter((m) => this.model.matches[m].winner === null);
+      const origins = this.model.origins[matchId]?.filter(
+        (m) => this.model.matches[m].winner === null
+      );
       // get hint of who might come to this match.
       // useful for losers' bracket
       const maybeHint = (from?: number) => {
@@ -179,9 +183,7 @@ export default Vue.extend({
   },
   computed: {
     winnersBracket(): ElementVM[][] {
-      (window as { global?: unknown }).global = this;
-
-      if (this.model instanceof DoubleElimination) {
+      if (DoubleElimination.isDoubleElimination(this.model)) {
         const winners = this.model.winnersRounds;
         const rounds = winners.slice(0, winners.length - 1);
 
@@ -200,9 +202,10 @@ export default Vue.extend({
         });
 
         return table;
+      } else if (SingleElimination.isSingleElimination(this.model)) {
+        return this.roundsToTable(this.model.winnersRounds);
       }
-
-      return this.roundsToTable(this.model.winnersRounds);
+      return [];
     },
     // can the currently selected match's winner be changed?
     winnerEditable(): boolean {

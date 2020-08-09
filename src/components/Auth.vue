@@ -2,7 +2,7 @@
   <div>
     <template v-if="value >= 0">
       <span>{{ $t('auth.currentUser', { username: refereeNames[value] }) }}</span>
-      <button @click="$emit('user-changed', -1)">{{ $t('auth.logout') }}</button>
+      <button @click="logOut">{{ $t('auth.logout') }}</button>
     </template>
     <template v-else>
       <input type="text" :placeholder="$t('auth.username')" v-model="username" />
@@ -26,20 +26,24 @@ export default Vue.extend({
   methods: {
     async logIn() {
       const token = `${btoa(this.username)} ${btoa(this.password)}`;
-      const response = await fetch(`${this.apiUrl}/~check`, {
-        method: 'get',
+      const response = await fetch(`${this.apiUrl}/~`, {
+        method: "get",
         headers: {
           Authentication: token,
         },
-        mode: 'cors'
+        mode: "cors",
       });
       const json = await response.json();
-      const user = parseInt(json.user) || -1;
+      const user = parseInt(json.user) ?? -1;
       this.$emit("input", user);
-      if(user !== -1) {
+      if (user !== -1) {
         this.$emit("token", token);
       }
     },
+    logOut() {
+      this.$emit("input", -1);
+      this.$emit("token", "");
+    }
   },
 });
 </script>

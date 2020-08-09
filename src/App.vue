@@ -12,17 +12,40 @@
 <script lang="ts">
 import Vue from "vue";
 import Auth from "@/components/Auth.vue";
+import { isArray } from "@/utils";
+import isString from "lodash/isString";
 
 export default Vue.extend({
   components: {
-    Auth
+    Auth,
   },
   data: () => ({
-    apiUrl: 'http://192.168.43.228:4000',
+    apiUrl: process.env.VUE_APP_TENKEI_NO_LIST_API_URL,
     user: -1,
-    token: '',
+    token: "",
     refereeNames: ["miao", "mie"],
   }),
+  methods: {
+    async updateReferees() {
+      const response = await fetch(`${this.apiUrl}/refereeNames`);
+      if (!response.ok) {
+        return;
+      }
+      const json = await response.json();
+      if (!isArray(json, isString)) {
+        return;
+      }
+      this.refereeNames = json;
+    },
+  },
+  timers: {
+    updateReferees: {
+      autostart: true,
+      repeat: true,
+      immediate: true,
+      time: 60_000,
+    },
+  },
 });
 </script>
 <style>

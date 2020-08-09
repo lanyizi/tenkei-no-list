@@ -1,6 +1,7 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2016",
     "module": "commonjs",
     "strict": true,
     "jsx": "preserve",
@@ -11,7 +12,6 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "alwaysStrict": true,
-    "resolveJsonModule": true,
     "baseUrl": ".",
     "types": [],
     "paths": {
@@ -26,6 +26,7 @@
   },
   "include": [
     "api/**/*.ts",
+    "src/models/*.ts"
   ],
   "exclude": [
     "node_modules"

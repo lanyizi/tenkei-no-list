@@ -12,7 +12,10 @@ import {
 } from '@/models/setup';
 import { isTournament } from './tournament/tournament';
 import { Edit, isEdit } from './changes';
-import { isEqual } from 'lodash-es';
+import isEqual from 'lodash/isEqual';
+import isNumber from 'lodash/isNumber';
+import isObject from 'lodash/isObject';
+import { has } from '@/utils';
 
 enum ValidationErrorType {
   ModifyingUnmodifiableFields,
@@ -30,6 +33,12 @@ enum ValidationErrorType {
 }
 
 export type WithID<T> = T & { id: number }
+export const hasId = (t: unknown): t is { id: number } => {
+  if(!isObject(t)) {
+    return false;
+  }
+  return has(t, 'number') && isNumber(t.number) && !isNaN(t.number);
+}
 
 export class ValidationError extends Error {
   errorType: ValidationErrorType;
@@ -83,7 +92,7 @@ export const matchValidator = (
     return old[f] !== newMatch[f] && newMatch[f] !== null;
   });
   for (const f of changed) {
-    const player = newMatch[f]!;
+    const player = newMatch[f];
     if (loserSources.find(match => {
       return match.winner !== null && match.winner !== player;
     })) {

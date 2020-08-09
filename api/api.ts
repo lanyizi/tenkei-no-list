@@ -1,24 +1,29 @@
+// execute with 
+// npx ts-node -r tsconfig-paths/register api/api.ts
+
 import { stat } from "fs"
 import pify from "pify"
 import jsonServer from "json-server"
-import { has, isString } from "lodash-es"
+import has from "lodash/has"
 import ReadWriteLock from "rwlock"
-import { 
-  ValidationError, 
-  tournamentValidator, 
-  WithID 
+import {
+  ValidationError,
+  tournamentValidator,
+  WithID
 } from '@/models/validations'
 import { tournament, information } from './tournament'
 import { Database } from './database'
 import { changeHandler } from './changes'
 import { CommitedEdit, Changes } from '@/models/changes'
+import isString from 'lodash/isString'
 const asyncStat = pify(stat)
 
 const server = jsonServer.create()
 const path = 'db.json'
 
-const database = new Database(path)
-const router = jsonServer.router(database)
+
+const router = jsonServer.router(path)
+const database = new Database((router as { db?: any }).db)
 const middlewares = jsonServer.defaults()
 
 export class NotAuthorizedError extends Error { }
@@ -62,7 +67,15 @@ server.use(async (req, res, next) => {
           if (error != null) {
             return reject(error)
           }
-          res.once('finish', releaser)
+          const releaseOnce = {
+            released: false,
+            release() {
+              this.released || releaser()
+              this.released = true
+            }
+          }
+          res.once('finish', releaseOnce.release)
+          res.once('close', releaseOnce.release)
           return resolve()
         }
         if (key === undefined) {
@@ -74,11 +87,11 @@ server.use(async (req, res, next) => {
       })
     }
 
-
     console.log(`request init`)
     const user = await database.getUser(req)
 
-    const { method, originalUrl, body } = req
+    const { originalUrl, body } = req
+    const method = req.method.toLowerCase()
     if (method === 'get' || method === 'head') {
       // everything except referees is readable by everyone
       if (originalUrl.startsWith('/referees')) {
@@ -89,7 +102,7 @@ server.use(async (req, res, next) => {
         if (!originalUrl.startsWith(`/${path}`)) {
           continue
         }
-        const id = retriveId(originalUrl, 'tournaments')
+        const id = retriveId(originalUrl, path)
         if (id === -1) {
           throw new NotImplementedError()
         }
@@ -101,7 +114,7 @@ server.use(async (req, res, next) => {
       }
 
       const actions: Partial<Record<string, () => void>> = {
-        '/tournamentsIds'() {
+        '/tournamentIds'() {
           res.json(database.db.get('tournaments').map(t => t.id))
         },
         '/refereeNames'() {
@@ -115,6 +128,7 @@ server.use(async (req, res, next) => {
       if (action !== undefined) {
         return action()
       }
+      return next()
       throw new BadRequestError(`Unknown read request ${originalUrl}`)
     }
 
@@ -153,14 +167,13 @@ server.use(async (req, res, next) => {
         // validate tournament
         tournamentValidator(undefined, req.body)
 
-        // create write locks
-        await lock('writeLock', 'global')
         const tournaments: any = database.db.get('tournaments')
-        // assign id
+        // assign id (assuming id creation is atomic)
         const newId: number | string = tournaments.createId().value()
         if (isString(newId)) {
           throw Error('unexpected string type id')
         }
+        // create write lock
         await lock('writeLock', `${newId}`)
         req.body.id = newId
         // create changes
@@ -171,7 +184,7 @@ server.use(async (req, res, next) => {
         return next()
       }
 
-      throw new BadRequestError(`Unknown read request ${originalUrl}`)
+      throw new BadRequestError(`Unknown post request ${originalUrl}`)
     }
 
     // check method
@@ -180,21 +193,28 @@ server.use(async (req, res, next) => {
     }
 
     // check tournament
-    const t = database.getObject(originalUrl, 'tournaments')
-    if (t !== undefined) {
-      const tournamentPath = `/tournaments/${t.id}`
-      if (path === `${tournamentPath}/information`) {
-        // editing information
-        return information(user, t.information, body, next)
-      }
+    const tournamentId = retriveId(originalUrl, 'tournaments')
+    if (tournamentId !== -1) {
+      const t = database.db.get('tournaments')
+        .find({ id: tournamentId })
+        .value()
 
-      // editing whole tournament
-      if (path !== tournamentPath) {
-        throw new NotAuthorizedError()
-      }
+      if (t !== undefined) {
+        const tournamentPath = `/tournaments/${t.id}`
+        if (path === `${tournamentPath}/information`) {
+          // editing information
+          return information(user, t.information, body, next)
+        }
 
-      return tournament(user, t, body, next)
+        // editing whole tournament
+        if (path !== tournamentPath) {
+          throw new NotAuthorizedError()
+        }
+
+        return tournament(user, t, body, next)
+      }
     }
+
 
     if (originalUrl === '/refereeNames') {
       res.json(database.db.get('referees').map(r => r.username))

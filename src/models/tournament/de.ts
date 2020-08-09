@@ -1,13 +1,12 @@
 import { Match, Tournament, winMatch } from ".";
 import { nCopies, iota, has } from '@/utils';
 import { getDesc, getHelpers, MatchDesc, Label } from './desc';
-import { getOrigins, isTournament, isRounds } from './tournament';
+import { getOrigins, isRounds } from './tournament';
 import {
   Information,
   DoubleEliminationSettings,
   isDoubleEliminationSettings
 } from '@/models/setup';
-import { isNumber, isNull } from 'lodash-es';
 
 export class DoubleElimination implements Tournament {
   status = 'started' as const;
@@ -130,7 +129,6 @@ export class DoubleElimination implements Tournament {
       if (otherSource === undefined) {
         throw Error('unpexpected other source null');
       }
-      const next = this.matches[match.winnerNext];
       // loser in otherSource auto wins against pseudo player
       // so it goes to match.winnerNext automatically
       this.matches[otherSource].loserNext = match.winnerNext;

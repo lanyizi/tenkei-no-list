@@ -2,7 +2,6 @@ import {
   Match,
   Tournament,
   getOrigins,
-  isTournament,
   isRounds
 } from "./tournament";
 import { iota, has } from '@/utils';
@@ -11,7 +10,8 @@ import {
   SingleEliminationSettings,
   isSingleEliminationSettings
 } from '@/models/setup';
-import { isNumber, isNull } from 'lodash-es';
+import isNumber from 'lodash/isNumber';
+import isNull from 'lodash/isNull';
 
 export class SingleElimination implements Tournament {
   status = 'started' as const;

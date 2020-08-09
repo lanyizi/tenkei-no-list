@@ -3,8 +3,11 @@
     <div v-if="user >= 0">
       <div v-if="setup != null">
         <SetupComponent :user="user" :referee-names="refereeNames" v-model="setup" />
-        <button @click="createTournament">{{ $t('generic.createTournament') }}</button>
-        <button @click="createAndStart">{{ $t('tournamentSetup.createAndStart') }}</button>
+        <button :disabled="disabled" @click="createTournament">{{ $t('generic.createTournament') }}</button>
+        <button
+          :disabled="disabled"
+          @click="createAndStart"
+        >{{ $t('tournamentSetup.createAndStart') }}</button>
       </div>
       <div v-else>
         <label>
@@ -19,9 +22,10 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
-import Auth from "@/components/Auth.vue";
 import SetupComponent from "@/components/Setup.vue";
 import { Setup } from "@/models/setup";
+import { hasId } from "@/models/validations";
+import { createFromSetup } from "@/models/tournament";
 export default Vue.extend({
   components: { SetupComponent },
   props: {
@@ -30,12 +34,10 @@ export default Vue.extend({
     token: String,
     refereeNames: Array as () => string[],
   },
-  mounted() {
-    ((window as unknown) as any).ccomponent = this;
-  },
   data: () => ({
     name: "",
     setup: null as Setup | null,
+    disabled: false,
   }),
   methods: {
     setupModel() {
@@ -43,21 +45,39 @@ export default Vue.extend({
       this.setup.information.name = this.name;
     },
     async createTournament() {
-      fetch(`${this.apiUrl}/tournaments`, {
-        method: 'post',
-        headers: {
-          Authentication: this.token
-        },
-        mode: 'cors',
-        body: JSON.stringify(this.setup)
-      })
-      alert("not implemented");
+      this.disabled = true;
+      try {
+        const response = await fetch(`${this.apiUrl}/tournaments`, {
+          method: "post",
+          headers: {
+            Authentication: this.token,
+            'Content-Type': 'application/json'
+          },
+          mode: "cors",
+          body: JSON.stringify(this.setup),
+        });
+        if (!response.ok) {
+          throw Error("create failed");
+        }
+        const created = await response.json();
+        if (!hasId(created)) {
+          throw Error("unexpected response");
+        }
+        await this.$router.push(`/${created.id}`);
+      } finally {
+        this.disabled = false;
+      }
     },
     async createAndStart() {
+      if (this.setup === null) {
+        throw Error("Unexpected");
+      }
+      if (!confirm(`${this.$t("tournamentSetup.startWarning")}`)) {
+        return;
+      }
+      this.setup = createFromSetup(this.setup);
       await this.createTournament();
-      alert(this.$t('tournamentSetup.startWarning'))
-      alert("not implemented");
-    }
+    },
   },
 });
 </script>

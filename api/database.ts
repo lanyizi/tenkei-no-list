@@ -1,30 +1,27 @@
 import { scrypt, timingSafeEqual } from 'crypto'
 import low from 'lowdb'
-import FileSync from 'lowdb/adapters/FileSync.js'
 import type { Request } from 'express'
-import type { CollectionChain } from 'lodash'
 import type { Referee } from '@/models/referee'
 import { Tournament } from '@/models/tournament'
 import { Setup } from '@/models/setup'
 import type { WithID } from '@/models/validations'
-import { retriveId } from './api'
+import { Changes } from '@/models/changes'
 
 
 type DataBaseModel = {
   tournaments: WithID<Tournament | Setup>[];
   referees: WithID<Referee>[];
-  changes: WithID<{ placeholder: string }>[];
+  changes: WithID<Changes>[];
 }
 
 export class Database {
   db: low.LowdbSync<DataBaseModel>
 
-  constructor(path: string) {
-    this.db = low(new FileSync(path))
-    // Add lodash-id methods to db
-    this.db._.mixin(require('lodash-id'))
-    // Add specific mixins
-    this.db._.mixin(require('json-server/mixins'))
+  constructor(db: low.LowdbSync<any>) {
+    if(db == null) {
+      throw Error('invalid database')
+    }
+    this.db = db
   }
 
   async getUser(req: Request): Promise<number> {
@@ -68,22 +65,5 @@ export class Database {
     }
 
     return found.id
-  }
-
-  getObject<K extends keyof DataBaseModel>(
-    url: string,
-    type: K
-  ): DataBaseModel[K][0] | undefined {
-    const id = retriveId(url, type)
-    if (id === -1) {
-      return undefined
-    }
-    const _ = this.db.get(type) as CollectionChain<DataBaseModel[K][0]>
-
-    return _.find(x => x.id === id).value() as DataBaseModel[K][0] | undefined
-  }
-
-  createChanges(body: WithID<Tournament | Setup>) {
-
   }
 }

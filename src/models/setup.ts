@@ -1,5 +1,8 @@
 import { isArray, has } from '@/utils';
-import { isBoolean, isNumber, isObject, isString } from 'lodash-es';
+import isBoolean from 'lodash/isBoolean';
+import isNumber from 'lodash/isNumber';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
 
 export type SingleEliminationSettings = {
   mode: 'se';
@@ -77,8 +80,10 @@ export class Setup {
 }
 export const isSetup = (t: unknown): t is Setup => {
   if (!isObject(t)) {
+    console.log('not object')
     return false;
   }
+  console.log('object: ', t)
 
   const checks = [
     ['status', (s: unknown) => s === 'setup' || s === 'started'],
@@ -87,5 +92,11 @@ export const isSetup = (t: unknown): t is Setup => {
     ['players', (players: unknown) => isArray(players, isString)]
   ] as const;
 
-  return checks.every(([k, f]) => has(t, k) && f(t[k]));
+  return checks.every(([k, f]) => {
+    if(has(t, k) && f(t[k])) {
+      return true;
+    }
+    console.log('not satisfied: ' + k)
+    return false;
+  });
 }

@@ -1,6 +1,7 @@
-import { Setup, isSetup } from '@/models/setup'
+import { Setup, Information, Settings } from '@/models/setup'
 import { has, isArray } from '@/utils'
-import { isObject, isNumber } from 'lodash-es'
+import isObject from 'lodash/isObject'
+import isNumber from 'lodash/isNumber'
 
 export class Match {
   constructor(winnerNext: number | null) {
@@ -40,6 +41,9 @@ export const isMatch = (match: unknown): match is Match => {
 
 export interface Tournament extends Setup {
   status: 'started';
+  information: Information;
+  settings: Settings;
+  players: string[];
   matches: Match[];
   origins: Record<number, number[]>;
 }

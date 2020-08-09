@@ -1,9 +1,12 @@
 import { has, isArray } from '@/utils'
-import { isNumber, isString, isNull, isObject } from 'lodash-es'
+import isNumber from 'lodash/isNumber'
+import isString from 'lodash/isString'
+import isNull from 'lodash/isNull'
+import isObject from 'lodash/isObject'
 
-type ExpectedType<T extends (arg: unknown) => any> = 
+type ExpectedType<T extends (arg: unknown) => unknown> = 
     T extends (arg: unknown) => arg is infer R ? R : never
-type Definition = Record<string, (arg: unknown) => any>
+type Definition = Record<string, (arg: unknown) => unknown>
 type FromDefinition<D extends Definition> = {
   [K in keyof D]: ExpectedType<D[K]>
 }
@@ -15,7 +18,7 @@ const getTypeChecker = <D extends Definition>(d: D) => {
     })
   } 
 }
-const isUnknown = (x: unknown): x is unknown => true
+const isUnknown = (x: unknown): x is unknown => true || x === x
 const isNumberOrNull = (x: unknown): x is number | null => 
   isNumber(x) || isNull(x)
 const isArrayOfNumberOfNull = (x: unknown): x is (number | null)[] =>

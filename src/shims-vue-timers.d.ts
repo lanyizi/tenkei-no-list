@@ -1,3 +1,5 @@
+/// <reference path="shims-vue-timers-vue.d.ts" />
+
 declare module 'vue-timers' {
   import Vue, { PluginFunction } from 'vue'
 
@@ -58,13 +60,5 @@ declare module 'vue-timers' {
 
   export default class VueTimers {
     static install: PluginFunction<never>
-  }
-}
-
-declare module 'vue/types/options' {
-  import { TimerObject } from 'vue-timers'
-
-  interface ComponentOptions<V extends Vue> {
-    timer?: TimerObject
   }
 }

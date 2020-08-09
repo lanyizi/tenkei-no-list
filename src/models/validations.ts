@@ -37,7 +37,7 @@ export const hasId = (t: unknown): t is { id: number } => {
   if(!isObject(t)) {
     return false;
   }
-  return has(t, 'number') && isNumber(t.number) && !isNaN(t.number);
+  return has(t, 'id') && isNumber(t.id) && !isNaN(t.id);
 }
 
 export class ValidationError extends Error {

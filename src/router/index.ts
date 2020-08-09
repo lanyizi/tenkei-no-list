@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
 import Home from '../views/Home.vue'
 import New from '@/views/New.vue'
+import Tournament from "@/views/Tournament.vue";
 
 Vue.use(VueRouter)
 
@@ -15,6 +16,11 @@ const routes: Array<RouteConfig> = [
     path: '/new',
     name: 'New',
     component: New
+  },
+  { 
+    path: '/:id(\\d+)', 
+    name: 'Tournament', 
+    component: Tournament
   },
   {
     path: '/about',

@@ -3,7 +3,7 @@
     <div v-if="user >= 0">
       <div v-if="setup != null">
         <SetupComponent :user="user" :referee-names="refereeNames" v-model="setup" />
-        <button :disabled="disabled" @click="createTournament">{{ $t('generic.createTournament') }}</button>
+        <button :disabled="disabled" @click="createTournament">{{ $t('createTournament') }}</button>
         <button
           :disabled="disabled"
           @click="createAndStart"
@@ -26,10 +26,11 @@ import SetupComponent from "@/components/Setup.vue";
 import { Setup } from "@/models/setup";
 import { hasId } from "@/models/validations";
 import { createFromSetup } from "@/models/tournament";
+import { request } from "@/request";
+
 export default Vue.extend({
   components: { SetupComponent },
   props: {
-    apiUrl: String,
     user: Number,
     token: String,
     refereeNames: Array as () => string[],
@@ -47,21 +48,21 @@ export default Vue.extend({
     async createTournament() {
       this.disabled = true;
       try {
-        const response = await fetch(`${this.apiUrl}/tournaments`, {
-          method: "post",
-          headers: {
-            Authentication: this.token,
-            'Content-Type': 'application/json'
-          },
-          mode: "cors",
-          body: JSON.stringify(this.setup),
-        });
+        if (this.setup == null) {
+          throw Error("Setup is null");
+        }
+        const response = await request(
+          "post",
+          "/tournaments",
+          this.token,
+          this.setup
+        );
         if (!response.ok) {
-          throw Error("create failed");
+          throw Error("Create failed");
         }
         const created = await response.json();
         if (!hasId(created)) {
-          throw Error("unexpected response");
+          throw Error("Unexpected response");
         }
         await this.$router.push(`/${created.id}`);
       } finally {

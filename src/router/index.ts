@@ -20,7 +20,8 @@ const routes: Array<RouteConfig> = [
   { 
     path: '/:id(\\d+)', 
     name: 'Tournament', 
-    component: Tournament
+    component: Tournament,
+    props: true
   },
   {
     path: '/about',

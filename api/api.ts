@@ -1,5 +1,5 @@
 // execute with 
-// npx ts-node -r tsconfig-paths/register api/api.ts
+// npx ts-node -r tsconfig-paths/register --project tsconfig.server.json api/api.ts
 
 import { stat } from "fs"
 import pify from "pify"

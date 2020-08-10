@@ -106,8 +106,8 @@ export default Vue.extend({
     },
     types(): ["se" | "de", string][] {
       return [
-        ["se", `${this.$t("generic.singleElimination")}`],
-        ["de", `${this.$t("generic.doubleElimination")}`],
+        ["se", `${this.$t("singleElimination")}`],
+        ["de", `${this.$t("doubleElimination")}`],
       ];
     },
     settings: {

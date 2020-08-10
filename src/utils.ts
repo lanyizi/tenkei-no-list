@@ -13,7 +13,7 @@ export const notNull = <T>(x: T | null): x is T => x != null;
 export const has = <K extends PropertyKey>(
   object: object,
   path: K
-): object is Record<K, unknown>  => {
+): object is Record<K, unknown> => {
   return lodashHas(object, path);
 }
 
@@ -23,4 +23,3 @@ export const isArray = <T>(
 ): array is T[] => {
   return Array.isArray(array) && array.every(elementChecker);
 }
-

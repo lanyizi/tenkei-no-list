@@ -13,9 +13,10 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
+import { request } from "@/request";
+
 export default Vue.extend({
   props: {
-    apiUrl: String,
     value: Number,
     refereeNames: Array as () => string[],
   },
@@ -26,13 +27,7 @@ export default Vue.extend({
   methods: {
     async logIn() {
       const token = `${btoa(this.username)} ${btoa(this.password)}`;
-      const response = await fetch(`${this.apiUrl}/~`, {
-        method: "get",
-        headers: {
-          Authentication: token,
-        },
-        mode: "cors",
-      });
+      const response = await request("get", "/~", token);
       const json = await response.json();
       const user = parseInt(json.user) ?? -1;
       this.$emit("input", user);
@@ -43,7 +38,7 @@ export default Vue.extend({
     logOut() {
       this.$emit("input", -1);
       this.$emit("token", "");
-    }
+    },
   },
 });
 </script>

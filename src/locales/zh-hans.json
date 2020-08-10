@@ -1,11 +1,18 @@
 {
+  "title": "天岚集阵",
+  "createTournament": "创建比赛",
+  "singleElimination": "单败制",
+  "doubleElimination": "双败制",
   "generic": {
     "add": "添加",
     "remove": "移除",
     "continue": "继续",
-    "createTournament": "创建比赛",
-    "singleElimination": "单败制",
-    "doubleElimination": "双败制"
+    "loading": "正在加载……"
+  },
+  "bracket": {
+    "isPreview": "比赛仍未开始，这个赛程表只是预览，有可能随时改变",
+    "cannotDisplay": "目前无法显示赛程表：{why}，请检查比赛设置",
+    "cannotLoad": "加载失败：{why}"
   },
   "auth": {
     "requireLogIn": "需要登录才能继续操作",

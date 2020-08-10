@@ -97,7 +97,7 @@ export default Vue.extend({
         editedPlayers: [editing.p1, editing.p2]
           .filter(notNull)
           .map((p, i) => ({ id: p, newName: this.currentEdit[i].name }))
-          .filter(({ id, newName }, i) => {
+          .filter(({ id, newName }) => {
             this.model.players[id] !== newName;
           }),
         editedScores: (["p1Score", "p2Score"] as const)

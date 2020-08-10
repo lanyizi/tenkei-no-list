@@ -174,7 +174,7 @@ export class DoubleElimination implements Tournament {
     }
 
     return ['winnersRounds', 'losersRounds'].every(k => {
-      has(t, k) && isRounds(t[k])
+      return has(t, k) && isRounds(t[k])
     });
   }
 }

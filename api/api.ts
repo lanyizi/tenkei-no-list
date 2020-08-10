@@ -215,7 +215,6 @@ server.use(async (req, res, next) => {
       }
     }
 
-
     if (originalUrl === '/refereeNames') {
       res.json(database.db.get('referees').map(r => r.username))
       return
@@ -227,7 +226,6 @@ server.use(async (req, res, next) => {
       return
     }
 
-    console.log(`sending not implemented`)
     res.status(500).json({ message: 'Not implemented' })
   }
   catch (e) {
@@ -253,8 +251,8 @@ server.use(async (req, res, next) => {
         res.status(400).json({ message: `${e}` })
         break
       default:
-        res.status(500).json({ message: `${e}` })
         console.log('Error', e)
+        res.status(500).json({ message: `${e}` })
         break
     }
   }

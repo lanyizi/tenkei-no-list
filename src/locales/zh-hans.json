@@ -7,12 +7,18 @@
     "add": "添加",
     "remove": "移除",
     "continue": "继续",
-    "loading": "正在加载……"
+    "loading": "正在加载……",
+    "submit": "提交",
+    "cancel": "取消"
   },
   "bracket": {
     "isPreview": "比赛仍未开始，这个赛程表只是预览，有可能随时改变",
     "cannotDisplay": "目前无法显示赛程表：{why}，请检查比赛设置",
-    "cannotLoad": "加载失败：{why}"
+    "cannotLoad": "加载失败：{why}",
+    "loserOf": "第{from}组的败者",
+    "playerName": "玩家名称",
+    "score": "分数",
+    "winner": "胜出者"
   },
   "auth": {
     "requireLogIn": "需要登录才能继续操作",
@@ -21,6 +27,10 @@
     "password": "密码",
     "login": "登录",
     "logout": "登出"
+  },
+  "matchEdit": {
+    "cannotEdit": "由于下一轮的比赛已经结束，因此现在无法修改比赛胜利者。",
+    "hintCannotEdit": "假如真的要修改本轮胜利者，请先修改下一轮的比赛。"
   },
   "information": {
     "name": "比赛名称",

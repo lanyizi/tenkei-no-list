@@ -128,8 +128,7 @@ export default Vue.extend({
         if (from === undefined) {
           return "";
         }
-        const fromMatch = this.model.matches[from];
-        return `${fromMatch.p1}或${fromMatch.p2}`;
+        return `${this.$t("bracket.loserOf", { from })}`;
       };
       const playerToVM = (
         id: number | null,

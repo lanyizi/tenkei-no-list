@@ -1,14 +1,14 @@
 <template>
   <div class="match-editor">
     <div v-if="!winnerEditable">
-      由于下一轮的比赛已经结束，因此现在无法修改比赛胜利者。
-      假如真的要修改本轮胜利者，请先修改下一轮的比赛。
+      {{ $t('matchEdit.cannotEdit') }}
+      {{ $t('matchEdit.hintCannotEdit') }}
     </div>
     <table class="match-editor-fields">
       <thead>
-        <td>玩家名称</td>
-        <td>分数</td>
-        <td>胜利</td>
+        <td>{{ $t('bracket.playerName') }}</td>
+        <td>{{ $t('bracket.score') }}</td>
+        <td>{{ $t('bracket.winner') }}</td>
       </thead>
       <tr v-for="(row, i) in value" :key="i">
         <td>
@@ -33,8 +33,8 @@
       </tr>
       <tr></tr>
     </table>
-    <button v-on:click="$emit('match-edit-confirmed')">提交</button>
-    <button v-on:click="$emit('match-edit-cancelled')">取消</button>
+    <button v-on:click="$emit('match-edit-confirmed')">{{ $t('generic.submit') }}</button>
+    <button v-on:click="$emit('match-edit-cancelled')">{{ $t('generic.cancel') }}</button>
   </div>
 </template>
 <script lang="ts">

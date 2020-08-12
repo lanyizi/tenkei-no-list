@@ -3,8 +3,8 @@ import { changesValidator } from '@/models/validations'
 import { Database } from './database'
 import { Tournament, Match, winMatch } from '@/models/tournament'
 import { NotAuthorizedError, BadRequestError } from './api'
-import { isEdit,  PlayerNameEdit, MatchEdit, Changes } from '@/models/changes'
-import { ObjectChain } from 'lodash'
+import { isEdit, PlayerNameEdit, MatchEdit, Changes } from '@/models/changes'
+import { Setup } from '@/models/setup'
 
 const players = ['p1', 'p2'] as const
 const undoMatch = (next: Match, targetPlayer: number) => {
@@ -23,10 +23,11 @@ export const changeHandler = (
   body: unknown
 ) => {
   const chain = database.db.get('tournaments')
-  const tournament = chain.find({ id }).value() as unknown as Tournament
-  if (tournament === undefined || tournament.status !== 'started') {
+  const found = chain.find({ id }).value() as Setup | Tournament
+  if (found === undefined || found.status !== 'started') {
     throw new Error('invalid state')
   }
+  const tournament = { ...found } as Tournament
 
   const { organizer, referees } = tournament.information
 
@@ -67,7 +68,7 @@ export const changeHandler = (
 
       // apply new winners
       match.winner = matchEdit.edited
-      if(match.winner !== null) {
+      if (match.winner !== null) {
         const winner = match.winner === match.p1 ? 'p1' : 'p2'
         winMatch(tournament, matchEdit.matchId, winner)
       }

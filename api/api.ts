@@ -146,6 +146,9 @@ server.use(async (req, res, next) => {
 
       const changesId = retriveId(originalUrl, 'changes')
       if (changesId !== -1) {
+        if(originalUrl !== `/changes/${changesId}/changes`) {
+          throw new BadRequestError()
+        }
         // acquire write lock
         await lock('writeLock', `${changesId}`)
         changeHandler(user, database, changesId, body)

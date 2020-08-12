@@ -15,7 +15,7 @@ import { Edit, isEdit } from './changes';
 import isEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
 import isObject from 'lodash/isObject';
-import { has } from '@/utils';
+import { has, notNull } from '@/utils';
 
 enum ValidationErrorType {
   ModifyingUnmodifiableFields,
@@ -34,7 +34,7 @@ enum ValidationErrorType {
 
 export type WithID<T> = T & { id: number }
 export const hasId = (t: unknown): t is { id: number } => {
-  if(!isObject(t)) {
+  if (!isObject(t)) {
     return false;
   }
   return has(t, 'id') && isNumber(t.id) && !isNaN(t.id);
@@ -202,23 +202,36 @@ export const changesValidator = (tournament: Tournament, change: Edit) => {
   }
 
   const players = ['p1', 'p2'] as const;
-  if (players.some(f => current[f] === null) && current.winner !== null) {
+  if (!players.every(f => notNull(current[f]))) {
     throw new ValidationError(ValidationErrorType.SettingWinnerWhenNotReady);
   }
 
   if (current.winner !== null) {
     const oldLoser = current.winner === current.p1 ? current.p2 : current.p1;
-    if (current.winnerNext !== null) {
-      const next = tournament.matches[current.winnerNext];
-      if (players.some(f => next[f] === current.winner)) {
-        throw new ValidationError(ValidationErrorType.ChangingConfirmedWinner);
+    if (oldLoser === null) {
+      throw new ValidationError(ValidationErrorType.EditingFromIncorrectData);
+    }
+    const verifyCanUndo = (
+      player: number,
+      nextId: number | null,
+      type: ValidationErrorType
+    ) => {
+      if (nextId !== null) {
+        const next = tournament.matches[nextId];
+        if (next.winner !== null && players.some(f => next[f] === player)) {
+          throw new ValidationError(type);
+        }
       }
     }
-    if (current.loserNext !== null) {
-      const next = tournament.matches[current.loserNext];
-      if (players.some(f => next[f] === oldLoser)) {
-        throw new ValidationError(ValidationErrorType.ChangingConfirmedLoser);
-      }
-    }
+    verifyCanUndo(
+      current.winner,
+      current.winnerNext,
+      ValidationErrorType.ChangingConfirmedWinner
+    );
+    verifyCanUndo(
+      oldLoser,
+      current.loserNext,
+      ValidationErrorType.ChangingConfirmedWinner
+    );
   }
 }

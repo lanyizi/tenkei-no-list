@@ -1,8 +1,8 @@
 <template>
   <table class="match">
     <tr class="match-player" v-for="(p, i) in players" :key="i">
-      <td class="match-player-name" :class="{ 'match-player-hint': p.isPlaceHolder }">{{ p.name }}</td>
-      <td v-if="!p.isPlaceHolder" :class="{ 'match-player-winner': p.isWinner }">{{ p.score }}</td>
+      <td class="match-player-name" :class="{ 'match-player-hint': p.id == null }">{{ p.name }}</td>
+      <td v-if="p.id != null" :class="{ 'match-player-winner': p.isWinner }">{{ p.score }}</td>
     </tr>
   </table>
 </template>
@@ -10,9 +10,9 @@
 import Vue from "vue";
 
 export type PlayerVM = {
+  id: number | null;
   name: string;
   score: number | null;
-  isPlaceHolder: boolean;
   isWinner: boolean;
 };
 

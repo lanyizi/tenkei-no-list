@@ -3,14 +3,17 @@
     <table>
       <tr v-for="(row, j) in winnersBracket" :key="j">
         <td v-for="(element, i) in row" in table :key="i">
-          <Match v-if="element != null" :value="element" @click="onMatchClick(element.id)"></Match>
+          <Match v-if="element != null" :value="element" @click.native="onMatchClick(element.id)"></Match>
           <MatchEditor
             v-if="element != null && element.id === matchEditorId"
             :best-of="3"
             :winner-editable="winnerEditable"
-            v-model="currentEdit"
-            @match-edit-confirmed="onMatchEditConfimed"
-            @match-edit-cancelled="matchEditorId = null"
+            :token="token"
+            :tournament-id="tournamentId"
+            :match-id="element.id"
+            :original="[element.p1, element.p2]"
+            @refresh-requested="$emit('refresh-requested')"
+            @close="matchEditorId = null"
           ></MatchEditor>
         </td>
       </tr>
@@ -27,7 +30,7 @@ import {
   SingleElimination,
   DoubleElimination,
 } from "@/models/tournament";
-import { nCopies, notNull } from "@/utils";
+import { nCopies } from "@/utils";
 
 type ElementVM = MatchVM | null;
 
@@ -52,10 +55,11 @@ export default Vue.extend({
   },
   data: () => ({
     matchEditorId: null as number | null,
-    currentEdit: [{}, {}] as PlayerVM[],
   }),
   props: {
+    tournamentId: String,
     model: Object as () => Tournament,
+    token: String,
   },
   methods: {
     onMatchClick(id: number) {
@@ -63,58 +67,6 @@ export default Vue.extend({
         return;
       }
       this.matchEditorId = id;
-      const { p1, p2 } = this.matchToVM(this.matchEditorId);
-      this.currentEdit = [p1, p2];
-    },
-    onMatchEditConfimed() {
-      if (this.matchEditorId === null) {
-        throw new Error("unexpected edit");
-      }
-
-      const editing = this.model.matches[this.matchEditorId];
-
-      // check winners
-      const winner =
-        [editing.p1, editing.p2].filter((p, i) => {
-          return this.currentEdit[i].isWinner;
-        })[0] || null;
-      // if winner has changed in the currrent match, return information of
-      // next matches which need to have their players being resetted
-      const getPlayersInNextMatches = (nextId: number | null) => {
-        if (nextId === null) {
-          return null;
-        }
-        const next = this.model.matches[nextId];
-        const playerFields = ["p1", "p2"] as const;
-        const playerIndex = playerFields.findIndex((p) =>
-          playerFields.some((q) => editing[q] === next[p])
-        );
-        return playerIndex !== -1 ? { matchId: nextId, playerIndex } : null;
-      };
-
-      const result: MatchEditResult = {
-        matchId: this.matchEditorId,
-        editedPlayers: [editing.p1, editing.p2]
-          .filter(notNull)
-          .map((p, i) => ({ id: p, newName: this.currentEdit[i].name }))
-          .filter(({ id, newName }) => {
-            this.model.players[id] !== newName;
-          }),
-        editedScores: (["p1Score", "p2Score"] as const)
-          .map((field, i) => ({
-            playerIndex: i,
-            oldScore: editing[field],
-            newScore: this.currentEdit[i].score,
-          }))
-          .filter(({ oldScore, newScore }) => oldScore !== newScore),
-        editedWinner: winner === editing.winner ? undefined : winner,
-        playersInNextMatches: [editing.winnerNext, editing.loserNext]
-          .map(getPlayersInNextMatches)
-          .filter(notNull),
-      };
-
-      this.matchEditorId = null;
-      this.$emit("match-edited", result);
     },
     matchToVM(matchId: number): MatchVM {
       const match = this.model.matches[matchId];
@@ -128,15 +80,18 @@ export default Vue.extend({
         if (from === undefined) {
           return "";
         }
-        return `${this.$t("bracket.loserOf", { from })}`;
+        if (this.model.matches[from].loserNext === matchId) {
+          return `${this.$t("bracket.loserOf", { from })}`;
+        }
+        return "";
       };
       const playerToVM = (
         id: number | null,
         score: number | null
       ): PlayerVM => ({
+        id,
         name: id !== null ? this.model.players[id] : maybeHint(origins?.pop()),
         score,
-        isPlaceHolder: id === null,
         isWinner: id === match.winner,
       });
       return {

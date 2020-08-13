@@ -6,7 +6,7 @@
       <div
         v-if="processed.type === 'previewError'"
       >{{ $t('bracket.cannotDisplay', { why: processed.why }) }}</div>
-      <Brackets v-else :model="processed.data" />
+      <Brackets v-else :token="token" :tournament-id="id" :model="processed.data" @refresh-requested="loadTournament" />
       <Information :value="model.information" :referee-names="refereeNames" />
     </div>
   </div>
@@ -43,17 +43,18 @@ export default Vue.extend({
   props: {
     refereeNames: Array as () => string[],
     id: String,
+    token: String,
   },
   data: () => ({
     model: new Setup(-1) as Setup | Tournament,
     placeholderMessage: null as TranslateResult | null,
   }),
-  mounted() {
-    this.initialize();
-  },
   watch: {
-    id() {
-      this.initialize();
+    id: {
+      immediate: true,
+      handler() {
+        this.loadTournament();
+      },
     },
   },
   timers: {

@@ -232,7 +232,7 @@ export const changesValidator = (tournament: Tournament, change: Edit) => {
     verifyCanUndo(
       oldLoser,
       current.loserNext,
-      ValidationErrorType.ChangingConfirmedWinner
+      ValidationErrorType.ChangingConfirmedLoser
     );
   }
 }

@@ -23,9 +23,9 @@
 <script lang="ts">
 import Vue from "vue";
 import SetupComponent from "@/components/Setup.vue";
-import { Setup } from "@/models/setup";
+import { Setup, createSetup } from "@/models/setup";
 import { hasId } from "@/models/validations";
-import { createFromSetup } from "@/models/tournament";
+import { createFromSetup, Tournament } from "@/models/tournament";
 import { request } from "@/request";
 
 export default Vue.extend({
@@ -37,12 +37,12 @@ export default Vue.extend({
   },
   data: () => ({
     name: "",
-    setup: null as Setup | null,
+    setup: null as Setup | Tournament | null,
     disabled: false,
   }),
   methods: {
     setupModel() {
-      this.setup = new Setup(this.user);
+      this.setup = createSetup(this.user);
       this.setup.information.name = this.name;
     },
     async createTournament() {
@@ -70,7 +70,7 @@ export default Vue.extend({
       }
     },
     async createAndStart() {
-      if (this.setup === null) {
+      if (this.setup === null || this.setup.status !== 'setup') {
         throw Error("Unexpected");
       }
       if (!confirm(`${this.$t("tournamentSetup.startWarning")}`)) {

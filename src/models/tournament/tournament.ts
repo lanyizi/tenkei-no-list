@@ -1,5 +1,5 @@
-import { Setup, Information, Settings } from '@/models/setup'
-import { has, isArray } from '@/utils'
+import { SetupLike } from '@/models/setup'
+import { has, isArray, FromDefinition, getTypeChecker } from '@/utils'
 import isObject from 'lodash/isObject'
 import isNumber from 'lodash/isNumber'
 
@@ -39,26 +39,19 @@ export const isMatch = (match: unknown): match is Match => {
   });
 }
 
-export interface Tournament extends Setup {
-  status: 'started';
-  information: Information;
-  settings: Settings;
-  players: string[];
-  matches: Match[];
-  origins: Record<number, number[]>;
+const tournamentSpecificDefinition = {
+  status: (x: unknown): x is 'started' => x === 'started',
+  matches: (x: unknown): x is Match[] => isArray(x, isMatch),
+  origins(x: unknown): x is Record<number, number[]> {
+    // make sure all values of origins are number array
+    return isObject(x) && Object.values(x).every(x => isArray(x, isNumber));
+  }
 }
-export const isTournament = (t: Setup): t is Tournament => {
-  if (t.status !== 'started') {
-    return false;
-  }
-  if (!has(t, 'matches') || !isArray(t.matches, isMatch)) {
-    return false;
-  }
-  if (!has(t, 'origins') || !isObject(t.origins)) {
-    return false;
-  }
-  // make sure all values of origins are number array
-  return Object.values(t.origins).every(x => isArray(x, isNumber));
+type TournamentSpeficic = FromDefinition<typeof tournamentSpecificDefinition>;
+const checkTournamentSpecific = getTypeChecker(tournamentSpecificDefinition);
+export type Tournament = SetupLike & TournamentSpeficic;
+export const isTournament = (x: SetupLike): x is Tournament => {
+  return checkTournamentSpecific(x);
 }
 
 export const winMatch = (

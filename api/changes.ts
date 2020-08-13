@@ -3,7 +3,7 @@ import { changesValidator } from '@/models/validations'
 import { Database } from './database'
 import { Tournament, Match, winMatch } from '@/models/tournament'
 import { NotAuthorizedError, BadRequestError } from './api'
-import { isEdit, PlayerNameEdit, MatchEdit, Changes } from '@/models/changes'
+import { isEdit, PlayerNameEdit, MatchEdit } from '@/models/changes'
 import { Setup } from '@/models/setup'
 
 const players = ['p1', 'p2'] as const

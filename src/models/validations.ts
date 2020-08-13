@@ -1,13 +1,14 @@
 import {
   Tournament,
   isMatch,
-  SingleElimination,
-  DoubleElimination
+  isSingleElimination,
+  isDoubleElimination
 } from '@/models/tournament';
 import {
   Information,
   isInformation,
   Setup,
+  isSetupLike,
   isSetup
 } from '@/models/setup';
 import { isTournament } from './tournament/tournament';
@@ -134,7 +135,7 @@ export const tournamentValidator = (
   old: WithID<Setup | Tournament> | undefined,
   edited: unknown
 ) => {
-  if (!isSetup(edited)) {
+  if (!isSetupLike(edited)) {
     throw new ValidationError(ValidationErrorType.InvalidFormat);
   }
   informationValidator(old?.information, edited.information);
@@ -143,8 +144,8 @@ export const tournamentValidator = (
     throw new ValidationError(ValidationErrorType.InvalidID)
   }
 
-  if (edited.status !== 'started') {
-    if (old !== undefined && old.status === 'started') {
+  if (isSetup(edited)) {
+    if (old !== undefined && old.status !== edited.status) {
       throw new ValidationError(ValidationErrorType.RevertingTournamentStatus);
     }
     return;
@@ -156,12 +157,12 @@ export const tournamentValidator = (
 
   switch (edited.settings.mode) {
     case 'se':
-      if (!SingleElimination.isSingleElimination(edited)) {
+      if (!isSingleElimination(edited)) {
         throw new ValidationError(ValidationErrorType.InvalidFormat);
       }
       break;
     case 'de':
-      if (!DoubleElimination.isDoubleElimination(edited)) {
+      if (!isDoubleElimination(edited)) {
         throw new ValidationError(ValidationErrorType.InvalidFormat);
       }
       break;

@@ -13,7 +13,7 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
-import { Setup, isSetup } from "@/models/setup";
+import { Setup, createSetup, isSetupLike, isSetup } from "@/models/setup";
 import { Tournament, createFromSetup } from "@/models/tournament";
 import { isTournament } from "@/models/tournament/tournament";
 import Brackets from "@/components/Brackets.vue";
@@ -46,7 +46,7 @@ export default Vue.extend({
     token: String,
   },
   data: () => ({
-    model: new Setup(-1) as Setup | Tournament,
+    model: createSetup(-1) as Setup | Tournament,
     placeholderMessage: null as TranslateResult | null,
   }),
   watch: {
@@ -78,10 +78,13 @@ export default Vue.extend({
           return;
         }
         const received = await response.json();
-        if (!isSetup(received)) {
+        if (!isSetupLike(received)) {
           throw Error("Received data is invalid");
         }
-        Object.assign(this.model, received);
+        if (!isTournament(received) && !isSetup(received)) {
+          throw Error("Received data is invalid");
+        }
+        this.model = received;
         this.placeholderMessage = null;
       } catch (why) {
         this.placeholderMessage = this.$t("bracket.cannotLoad", { why });

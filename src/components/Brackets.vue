@@ -27,8 +27,8 @@ import Match, { MatchVM, PlayerVM } from "./Match.vue";
 import MatchEditor from "./MatchEditor.vue";
 import {
   Tournament,
-  SingleElimination,
-  DoubleElimination,
+  isDoubleElimination,
+  isSingleElimination,
 } from "@/models/tournament";
 import { nCopies } from "@/utils";
 
@@ -137,7 +137,7 @@ export default Vue.extend({
   },
   computed: {
     winnersBracket(): ElementVM[][] {
-      if (DoubleElimination.isDoubleElimination(this.model)) {
+      if (isDoubleElimination(this.model)) {
         const winners = this.model.winnersRounds;
         const rounds = winners.slice(0, winners.length - 1);
 
@@ -156,7 +156,7 @@ export default Vue.extend({
         });
 
         return table;
-      } else if (SingleElimination.isSingleElimination(this.model)) {
+      } else if (isSingleElimination(this.model)) {
         return this.roundsToTable(this.model.winnersRounds);
       }
       return [];

@@ -1,24 +1,26 @@
-import { SingleElimination } from './se';
-import { DoubleElimination } from './de';
+import { SingleElimination, createSingleElimination } from './se';
+import { DoubleElimination, createDoubleElimination } from './de';
 import { Setup } from '@/models/setup';
 
 export type { Tournament } from './tournament';
 export { Match, winMatch, isMatch } from './tournament';
-export { SingleElimination } from './se';
-export { DoubleElimination } from './de';
+export type { SingleElimination } from './se';
+export { isSingleElimination } from './se';
+export type { DoubleElimination } from './de';
+export { isDoubleElimination } from './de';
 
 export const createFromSetup = (
   setup: Setup
 ): SingleElimination | DoubleElimination => {
   switch(setup.settings.mode) {
     case 'se':
-      return new SingleElimination(
+      return createSingleElimination(
         setup.information, 
         setup.players, 
         setup.settings.hasThirdPlace
       );
     case 'de':
-      return new DoubleElimination(
+      return createDoubleElimination(
         setup.information,
         setup.players,
         setup.settings.hasExtraMatch

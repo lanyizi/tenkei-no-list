@@ -1,4 +1,4 @@
-import { isArray, has } from '@/utils';
+import { isArray, has, FromDefinition, getTypeChecker } from '@/utils';
 import isBoolean from 'lodash/isBoolean';
 import isNumber from 'lodash/isNumber';
 import isObject from 'lodash/isObject';
@@ -59,44 +59,31 @@ export const isInformation = (info: unknown): info is Information => {
   });
 }
 
-export class Setup {
-  status: 'setup' | 'started' = 'setup'
-  information: Information;
-  settings: Settings = {
-    mode: 'de',
-    hasExtraMatch: true
-  };
-  players: string[] = [];
-
-  constructor(organizer: number) {
-    this.information = {
-      organizer,
-      referees: [],
-      tournamentDate: Math.floor(Date.now() / 1000),
-      name: '',
-      description: ''
-    }
-  }
+const setupLikeDefinition = {
+  status: isString,
+  information: isInformation,
+  settings: isSettings,
+  players: (x: unknown): x is string[] => isArray(x, isString)
 }
-export const isSetup = (t: unknown): t is Setup => {
-  if (!isObject(t)) {
-    console.log('not object')
-    return false;
-  }
-  console.log('object: ', t)
+export type SetupLike = FromDefinition<typeof setupLikeDefinition>;
+export const isSetupLike = getTypeChecker(setupLikeDefinition);
 
-  const checks = [
-    ['status', (s: unknown) => s === 'setup' || s === 'started'],
-    ['information', isInformation],
-    ['settings', isSettings],
-    ['players', (players: unknown) => isArray(players, isString)]
-  ] as const;
-
-  return checks.every(([k, f]) => {
-    if(has(t, k) && f(t[k])) {
-      return true;
-    }
-    console.log('not satisfied: ' + k)
-    return false;
-  });
-}
+export type Setup = SetupLike & {
+  status: 'setup';
+};
+export const isSetup = (x: SetupLike): x is Setup => x.status === 'setup';
+export const createSetup = (organizer: number): Setup => ({
+  status: 'setup',
+  information: {
+    organizer,
+    referees: [],
+    tournamentDate: Math.floor(Date.now() / 1000),
+    name: '',
+    description: ''
+  },
+  settings: {
+    mode: 'se',
+    hasThirdPlace: false
+  },
+  players: []
+});

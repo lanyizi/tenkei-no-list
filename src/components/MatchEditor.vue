@@ -178,16 +178,13 @@ export default Vue.extend({
         const promises = keys
           .map((k) => this.edited[k])
           .filter(notNull)
-          .map(async (e) => {
-            const response = await request(
+          .map((e) => {
+            return request(
               "post",
               `/changes/${this.tournamentId}/changes`,
               this.token,
               e
             );
-            if (!response.ok) {
-              throw Error("Response not ok");
-            }
           });
         await Promise.all(promises);
         this.$emit("refresh-requested");

@@ -9,12 +9,13 @@
     "continue": "继续",
     "loading": "正在加载……",
     "submit": "提交",
-    "cancel": "取消"
+    "cancel": "取消",
+    "cannotLoad": "加载失败：{why}",
+    "unhandledError": "未处理的错误"
   },
   "bracket": {
     "isPreview": "比赛仍未开始，这个赛程表只是预览，有可能随时改变",
     "cannotDisplay": "目前无法显示赛程表：{why}，请检查比赛设置",
-    "cannotLoad": "加载失败：{why}",
     "loserOf": "第{from}组的败者",
     "playerName": "玩家名称",
     "score": "分数",
@@ -41,6 +42,8 @@
   },
   "tournamentSetup": {
     "title": "比赛设置",
+    "conflictWarning": "目前还暂未实现解决冲突的机制，因此这里的更改可能会被另一位赛务的更改完全覆盖。",
+    "hintConflictWarning": "为了避免这种情况的发生，暂时不建议多位赛务同时往同一场比赛里添加玩家。",
     "playerListSettings": {
       "title": "选手列表",
       "cannotAdd": "比赛已经开始，不能再添加新选手了",

@@ -3,6 +3,7 @@ import { DoubleElimination, createDoubleElimination } from './de';
 import { Setup } from '@/models/setup';
 
 export type { Tournament } from './tournament';
+export { isTournament } from './tournament';
 export { Match, winMatch, isMatch } from './tournament';
 export type { SingleElimination } from './se';
 export { isSingleElimination } from './se';
@@ -12,11 +13,11 @@ export { isDoubleElimination } from './de';
 export const createFromSetup = (
   setup: Setup
 ): SingleElimination | DoubleElimination => {
-  switch(setup.settings.mode) {
+  switch (setup.settings.mode) {
     case 'se':
       return createSingleElimination(
-        setup.information, 
-        setup.players, 
+        setup.information,
+        setup.players,
         setup.settings.hasThirdPlace
       );
     case 'de':

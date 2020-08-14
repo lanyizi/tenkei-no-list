@@ -14,6 +14,8 @@
 <script lang="ts">
 import Vue from "vue";
 import { request } from "@/request";
+import { has } from '@/utils';
+import isObject from 'lodash/isObject';
 
 export default Vue.extend({
   props: {
@@ -27,9 +29,11 @@ export default Vue.extend({
   methods: {
     async logIn() {
       const token = `${btoa(this.username)} ${btoa(this.password)}`;
-      const response = await request("get", "/~", token);
-      const json = await response.json();
-      const user = parseInt(json.user) ?? -1;
+      const json = await request("get", "/~", token);
+      if(!isObject(json) || !has(json, 'user')) {
+        return;
+      }
+      const user = parseInt(`${json.user}`) ?? -1;
       this.$emit("input", user);
       if (user !== -1) {
         this.$emit("token", token);

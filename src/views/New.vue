@@ -51,16 +51,12 @@ export default Vue.extend({
         if (this.setup == null) {
           throw Error("Setup is null");
         }
-        const response = await request(
+        const created = await request(
           "post",
           "/tournaments",
           this.token,
           this.setup
         );
-        if (!response.ok) {
-          throw Error("Create failed");
-        }
-        const created = await response.json();
         if (!hasId(created)) {
           throw Error("Unexpected response");
         }

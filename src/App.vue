@@ -27,15 +27,11 @@ export default Vue.extend({
   }),
   methods: {
     async updateReferees() {
-      const response = await request("get", "/refereeNames");
-      if (!response.ok) {
+      const names = await request("get", "/refereeNames").catch(() => null);
+      if (!isArray(names, isString)) {
         return;
       }
-      const json = await response.json();
-      if (!isArray(json, isString)) {
-        return;
-      }
-      this.refereeNames = json;
+      this.refereeNames = names;
     },
   },
   timers: {

@@ -13,13 +13,13 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
-import { Setup, createSetup, isSetupLike, isSetup } from "@/models/setup";
+import { Setup, createSetup } from "@/models/setup";
 import { Tournament, createFromSetup } from "@/models/tournament";
-import { isTournament } from "@/models/tournament/tournament";
+import { isTournament } from "@/models/tournament";
 import Brackets from "@/components/Brackets.vue";
 import Information from "@/components/Information.vue";
 import { TranslateResult } from "vue-i18n";
-import { request } from "@/request";
+import { loadTournament } from "@/request";
 
 type Processed =
   | {
@@ -53,7 +53,7 @@ export default Vue.extend({
     id: {
       immediate: true,
       handler() {
-        this.loadTournament();
+        this.initialize();
       },
     },
   },
@@ -71,23 +71,10 @@ export default Vue.extend({
     },
     async loadTournament() {
       try {
-        const response = await request("get", `/tournaments/${this.id}`);
-        if (!response.ok) {
-          const why = (await response.json()).message;
-          this.$t("bracket.cannotLoad", { why });
-          return;
-        }
-        const received = await response.json();
-        if (!isSetupLike(received)) {
-          throw Error("Received data is invalid");
-        }
-        if (!isTournament(received) && !isSetup(received)) {
-          throw Error("Received data is invalid");
-        }
-        this.model = received;
+        this.model = await loadTournament(this.id);
         this.placeholderMessage = null;
       } catch (why) {
-        this.placeholderMessage = this.$t("bracket.cannotLoad", { why });
+        this.placeholderMessage = this.$t("generic.cannotLoad", { why });
       }
     },
   },

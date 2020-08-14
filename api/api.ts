@@ -19,10 +19,10 @@ import isString from 'lodash/isString'
 const asyncStat = pify(stat)
 
 const server = jsonServer.create()
-const path = 'db.json'
+const databasePath = 'db.json'
 
 
-const router = jsonServer.router(path)
+const router = jsonServer.router(databasePath)
 const database = new Database((router as { db?: any }).db)
 const middlewares = jsonServer.defaults()
 
@@ -133,7 +133,7 @@ server.use(async (req, res, next) => {
     }
 
     // check size before write, limit to 10MB
-    const stat = await asyncStat(path)
+    const stat = await asyncStat(databasePath)
     if (!(stat.size < 10_000_000)) {
       throw Error('Database too large')
     }
@@ -204,14 +204,14 @@ server.use(async (req, res, next) => {
 
       if (t !== undefined) {
         const tournamentPath = `/tournaments/${t.id}`
-        if (path === `${tournamentPath}/information`) {
+        if (originalUrl === `${tournamentPath}/information`) {
           // editing information
           return information(user, t.information, body, next)
         }
 
         // editing whole tournament
-        if (path !== tournamentPath) {
-          throw new NotAuthorizedError()
+        if (originalUrl !== tournamentPath) {
+          throw new NotAuthorizedError(`Unexpected path ${originalUrl}`)
         }
 
         return tournament(user, t, body, next)

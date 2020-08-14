@@ -140,7 +140,7 @@ export const tournamentValidator = (
   }
   informationValidator(old?.information, edited.information);
   // make sure id isn't changed
-  if (old?.information !== (edited as Partial<WithID<object>>).id) {
+  if (old?.id !== (edited as Partial<WithID<object>>).id) {
     throw new ValidationError(ValidationErrorType.InvalidID)
   }
 

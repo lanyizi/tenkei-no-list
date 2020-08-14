@@ -218,17 +218,6 @@ server.use(async (req, res, next) => {
       }
     }
 
-    if (originalUrl === '/refereeNames') {
-      res.json(database.db.get('referees').map(r => r.username))
-      return
-    }
-
-    if (originalUrl === '/~') {
-      console.log(`sending response ${JSON.stringify({ user })}`)
-      res.json({ user })
-      return
-    }
-
     res.status(500).json({ message: 'Not implemented' })
   }
   catch (e) {

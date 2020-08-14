@@ -1,17 +1,21 @@
-import { EditHandler, BadRequestError, NotAuthorizedError } from "./api";
+import { EditHandler, BadRequestError, NotAuthorizedError, NotImplementedError } from "./api";
 import { Tournament } from '@/models/tournament';
-import { 
-  tournamentValidator, 
-  informationValidator, 
-  refereeChanged, 
-  WithID 
+import {
+  tournamentValidator,
+  informationValidator,
+  refereeChanged,
+  WithID
 } from '@/models/validations';
 import { Information, Setup } from '@/models/setup';
+import { has } from '@/utils';
+import isEqual from 'lodash/isEqual';
+import isObject from 'lodash/isObject';
+
 
 export const tournament: EditHandler<WithID<Tournament | Setup>> = (
-  user, 
-  current, 
-  body, 
+  user,
+  current,
+  body,
   next
 ): void => {
   // validate tournament
@@ -26,18 +30,26 @@ export const tournament: EditHandler<WithID<Tournament | Setup>> = (
   if (user !== current.information.organizer) {
     throw new NotAuthorizedError('You are not organizer')
   }
-  
+
   return next()
 }
 
 export const information: EditHandler<Information> = (
-  user, 
-  current, 
-  body, 
+  user,
+  current,
+  body,
   next
 ) => {
+  if (!isObject(body) || !has(body, 'information')) {
+    throw new BadRequestError('Body has no information to be updated')
+  }
+  // make sure body only contains information
+  if (!isEqual(['information'], Object.getOwnPropertyNames(body))) {
+    throw new NotImplementedError('Currently only info can be patched')
+  }
+
   // validate info
-  informationValidator(current, body)
+  informationValidator(current, body.information)
 
   if (user === current.organizer) {
     // information is always writable by organizer
@@ -49,9 +61,9 @@ export const information: EditHandler<Information> = (
   }
 
   // referee cannot alter organizer or change referees
-  if (refereeChanged(current, body)) {
+  if (refereeChanged(current, body.information)) {
     throw new NotAuthorizedError('You cannot alter referees')
   }
-  
+
   return next()
 }

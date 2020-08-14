@@ -146,7 +146,7 @@ server.use(async (req, res, next) => {
 
       const changesId = retriveId(originalUrl, 'changes')
       if (changesId !== -1) {
-        if(originalUrl !== `/changes/${changesId}/changes`) {
+        if (originalUrl !== `/changes/${changesId}/changes`) {
           throw new BadRequestError()
         }
         // acquire write lock
@@ -190,11 +190,6 @@ server.use(async (req, res, next) => {
       throw new BadRequestError(`Unknown post request ${originalUrl}`)
     }
 
-    // check method
-    if (method !== 'put') {
-      throw new BadRequestError(`Unsupported method ${method}`)
-    }
-
     // check tournament
     const tournamentId = retriveId(originalUrl, 'tournaments')
     if (tournamentId !== -1) {
@@ -202,19 +197,27 @@ server.use(async (req, res, next) => {
         .find({ id: tournamentId })
         .value()
 
-      if (t !== undefined) {
-        const tournamentPath = `/tournaments/${t.id}`
-        if (originalUrl === `${tournamentPath}/information`) {
+      if (t === undefined) {
+        throw new NotFoundError(`Invalid tournament id ${tournamentId}`)
+      }
+
+      // check path
+      const tournamentPath = `/tournaments/${t.id}`
+      if (originalUrl !== tournamentPath) {
+        throw new NotAuthorizedError(`Unexpected path ${originalUrl}`)
+      }
+
+      // check method: currently patch is only used to update tournament
+      // information
+      switch (method) {
+        case 'put':
+          // updating whole tournament
+          return tournament(user, t, body, next)
+        case 'patch':
           // editing information
           return information(user, t.information, body, next)
-        }
-
-        // editing whole tournament
-        if (originalUrl !== tournamentPath) {
-          throw new NotAuthorizedError(`Unexpected path ${originalUrl}`)
-        }
-
-        return tournament(user, t, body, next)
+        default:
+          throw new BadRequestError(`Unsupported method ${method}`)
       }
     }
 

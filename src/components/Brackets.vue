@@ -92,7 +92,7 @@ export default Vue.extend({
         id,
         name: id !== null ? this.model.players[id] : maybeHint(origins?.pop()),
         score,
-        isWinner: id === match.winner,
+        isWinner: id !== null && id === match.winner,
       });
       return {
         id: matchId,

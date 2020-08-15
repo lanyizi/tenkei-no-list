@@ -94,7 +94,7 @@ export default Vue.extend({
       },
       set(value: string) {
         const date = new Date(this.tournamentDate.valueOf());
-        const values = value.split("-").map(parseInt) as [
+        const values = value.split("-").map((s) => parseInt(s, 10)) as [
           number,
           number,
           number
@@ -115,7 +115,10 @@ export default Vue.extend({
       },
       set(value: string) {
         const date = new Date(this.tournamentDate.valueOf());
-        const values = value.split(":").map(parseInt) as [number, number];
+        const values = value.split(":").map((s) => parseInt(s, 10)) as [
+          number,
+          number
+        ];
         date.setHours(...values);
         this.tournamentDate = date;
       },

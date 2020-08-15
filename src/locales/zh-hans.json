@@ -8,6 +8,7 @@
     "remove": "移除",
     "continue": "继续",
     "loading": "正在加载……",
+    "edit": "修改",
     "submit": "提交",
     "save": "保存",
     "cancel": "取消",
@@ -28,7 +29,8 @@
     "username": "用户名",
     "password": "密码",
     "login": "登录",
-    "logout": "登出"
+    "logout": "登出",
+    "addReferee": "添加赛务"
   },
   "matchEdit": {
     "cannotEdit": "由于下一轮的比赛已经结束，因此现在无法修改比赛胜利者。",

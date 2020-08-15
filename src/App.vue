@@ -1,14 +1,17 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link>|
-      <router-link to="/new">New</router-link>|
+      <router-link to="/">Home</router-link> |
+      <router-link to="/new">New</router-link> |
       <router-link to="/about">About</router-link>
+      <template v-if="user === 0">
+        | <router-link to="/referees">Referees</router-link>
+      </template>
       <template v-if="$route.name === 'Tournament'">
-        |<router-link :to="{ name: 'Settings', params: $route.params }">Settings</router-link>
+        | <router-link :to="{ name: 'Settings', params: $route.params }">Settings</router-link>
       </template>
       <template v-else-if="$route.name === 'Settings'">
-        |<router-link :to="{ name: 'Tournament', params: $route.params }">Bracket</router-link>
+        | <router-link :to="{ name: 'Tournament', params: $route.params }">Bracket</router-link>
       </template>
     </div>
     <Auth :referee-names="refereeNames" v-model="user" @token="token = $event"></Auth>

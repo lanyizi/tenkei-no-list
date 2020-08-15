@@ -2,8 +2,9 @@ import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
 import Home from '../views/Home.vue'
 import New from '@/views/New.vue'
-import Tournament from "@/views/Tournament.vue";
-import Settings from "@/views/Settings.vue";
+import Tournament from "@/views/Tournament.vue"
+import Settings from "@/views/Settings.vue"
+import Referees from "@/views/Referees.vue"
 
 Vue.use(VueRouter)
 
@@ -18,17 +19,22 @@ const routes: Array<RouteConfig> = [
     name: 'New',
     component: New
   },
-  { 
-    path: '/:id(\\d+)', 
-    name: 'Tournament', 
+  {
+    path: '/:id(\\d+)',
+    name: 'Tournament',
     component: Tournament,
     props: true
   },
-  { 
-    path: '/settings/:id(\\d+)', 
-    name: 'Settings', 
+  {
+    path: '/settings/:id(\\d+)',
+    name: 'Settings',
     component: Settings,
     props: true
+  },
+  {
+    path: '/referees',
+    name: 'Referees',
+    component: Referees
   },
   {
     path: '/about',

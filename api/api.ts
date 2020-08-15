@@ -16,6 +16,7 @@ import { Database } from './database'
 import { changeHandler } from './changes'
 import isObject from 'lodash/isObject'
 import isNumber from 'lodash/isNumber'
+import { editReferee } from './user'
 const asyncStat = pify(stat)
 
 const server = jsonServer.create()
@@ -111,7 +112,14 @@ server.use(async (req, res, next) => {
           res.json(database.db.get('tournaments').map(t => t.id))
         },
         '/refereeNames'() {
-          res.json(database.db.get('referees').map(r => r.username))
+          const names: string[] = []
+          database.db.get('referees').forEach(({ id, username }) => {
+            id = parseInt(`${id}`, 10);
+            if (id >= 0) {
+              names[id] = username;
+            }
+          }).value()
+          res.json(Array.from(names))
         },
         '/~'() {
           res.json({ user })
@@ -122,7 +130,6 @@ server.use(async (req, res, next) => {
         return action()
       }
       return next()
-      throw new BadRequestError(`Unknown read request ${originalUrl}`)
     }
 
     // check size before write, limit to 10MB
@@ -137,40 +144,46 @@ server.use(async (req, res, next) => {
         delete body.id;
       }
 
-      if (originalUrl === '/changes') {
-        if (!isEdit(body)) {
-          throw new BadRequestError('Invalid input object')
+      switch (originalUrl) {
+        // apply changes
+        case '/changes': {
+          if (!isEdit(body)) {
+            throw new BadRequestError('Invalid input object')
+          }
+          if (!has(body, 'tournament') || !isNumber(body.tournament)) {
+            throw new BadRequestError('Change has no associated tournament id')
+          }
+          const tournament = body.tournament
+          // remove tournament id after acquiring it
+          delete body.tournament
+          // acquire write lock
+          await lock('writeLock', `${tournament}`)
+          changeHandler(user, database, tournament, body)
+          const commited: CommitedEdit = {
+            tournament,
+            referee: user,
+            date: Math.floor(Date.now() / 1000),
+            edit: body
+          }
+          req.body = commited
+          return next()
         }
-        if (!has(body, 'tournament') || !isNumber(body.tournament)) {
-          throw new BadRequestError('Change has no associated tournament id')
-        }
-        const tournament = body.tournament
-        // remove tournament id after acquiring it
-        delete body.tournament
-        // acquire write lock
-        await lock('writeLock', `${tournament}`)
-        changeHandler(user, database, tournament, body)
-        const commited: CommitedEdit = {
-          tournament,
-          referee: user,
-          date: Math.floor(Date.now() / 1000),
-          edit: body
-        }
-        req.body = commited
-        return next()
-      }
+        // create new tournament
+        case '/tournament': {
+          if (user === -1) {
+            throw new NotAuthorizedError()
+          }
 
-      // create new tournament
-      if (originalUrl === '/tournaments') {
-        if (user === -1) {
-          throw new NotAuthorizedError()
+          // validate tournament
+          tournamentValidator(undefined, body)
+
+          // let json-server handle the rest
+          return next()
         }
-
-        // validate tournament
-        tournamentValidator(undefined, req.body)
-
-        // let json-server handle the rest
-        return next()
+        case '/referees': {
+          req.body = await editReferee(user, undefined, body)
+          return next()
+        }
       }
 
       throw new BadRequestError(`Unknown post request ${originalUrl}`)
@@ -207,6 +220,19 @@ server.use(async (req, res, next) => {
         default:
           throw new BadRequestError(`Unsupported method ${method}`)
       }
+    }
+
+    // check referee
+    const refereeId = retriveId(originalUrl, 'referees')
+    if (refereeId !== -1) {
+      const r = database.db.get('referees')
+        .find({ id: refereeId })
+        .value()
+      if (r === undefined) {
+        throw new NotFoundError(`Invalid referee id ${refereeId}`)
+      }
+      req.body = await editReferee(user, r, body)
+      return next()
     }
 
     res.status(500).json({ message: 'Not implemented' })

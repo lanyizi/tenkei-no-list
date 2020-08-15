@@ -1,4 +1,4 @@
-import { scrypt, timingSafeEqual } from 'crypto'
+import { timingSafeEqual } from 'crypto'
 import low from 'lowdb'
 import type { Request } from 'express'
 import type { Referee } from '@/models/referee'
@@ -6,6 +6,7 @@ import { Tournament } from '@/models/tournament'
 import { Setup } from '@/models/setup'
 import type { WithID } from '@/models/validations'
 import { CommitedEdit } from '@/models/changes'
+import { hash } from './user'
 
 
 type DataBaseModel = {
@@ -18,7 +19,7 @@ export class Database {
   db: low.LowdbSync<DataBaseModel>
 
   constructor(db: low.LowdbSync<any>) {
-    if(db == null) {
+    if (db == null) {
       throw Error('invalid database')
     }
     this.db = db
@@ -46,21 +47,12 @@ export class Database {
       return -1
     }
 
-    const promise = new Promise<Buffer>((resolve, reject) => {
-      scrypt(password, 'jcwtjcwt', 64, (err, key) => {
-        if (err != null) {
-          reject(err)
-          return
-        }
-        resolve(key)
-      })
-    })
-    const inputBuffer = await promise
+    const inputBuffer = await hash(password)
     const storedBuffer = Buffer.from(found.hash, 'base64')
     if (inputBuffer.length !== storedBuffer.length) {
       return -1
     }
-    if (!timingSafeEqual(await promise, storedBuffer)) {
+    if (!timingSafeEqual(inputBuffer, storedBuffer)) {
       return -1
     }
 

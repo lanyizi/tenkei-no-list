@@ -1,5 +1,5 @@
 
-import { changesValidator, WithID } from '@/models/validations'
+import { changesValidator } from '@/models/validations'
 import { Database } from './database'
 import { Tournament, Match, winMatch } from '@/models/tournament'
 import { NotAuthorizedError, BadRequestError, NotImplementedError } from './api'

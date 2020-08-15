@@ -87,7 +87,6 @@ server.use(async (req, res, next) => {
       })
     }
 
-    console.log(`request init`)
     const user = await database.getUser(req)
 
     const { originalUrl, body } = req

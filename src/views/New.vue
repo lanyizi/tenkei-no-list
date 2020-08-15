@@ -52,7 +52,7 @@ export default Vue.extend({
           throw Error("Setup is null");
         }
         const created = await request(
-          "post",
+          "POST",
           "/tournaments",
           this.token,
           this.setup

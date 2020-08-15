@@ -27,7 +27,7 @@ export default Vue.extend({
   }),
   methods: {
     async updateReferees() {
-      const names = await request("get", "/refereeNames").catch(() => null);
+      const names = await request("GET", "/refereeNames").catch(() => null);
       if (!isArray(names, isString)) {
         return;
       }

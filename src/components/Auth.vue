@@ -29,7 +29,7 @@ export default Vue.extend({
   methods: {
     async logIn() {
       const token = `${btoa(this.username)} ${btoa(this.password)}`;
-      const json = await request("get", "/~", token);
+      const json = await request("GET", "/~", token);
       if(!isObject(json) || !has(json, 'user')) {
         return;
       }

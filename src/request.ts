@@ -2,7 +2,7 @@ import { isSetupLike, isSetup } from '@/models/setup'
 import { isTournament } from '@/models/tournament'
 
 export const request = async (
-  method: 'get' | 'post' | 'put',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH',
   path: string,
   token?: string,
   body?: object
@@ -29,7 +29,7 @@ export const request = async (
 }
 
 export const loadTournament = async (id: string) => {
-  const received = await request('get', `/tournaments/${id}`)
+  const received = await request('GET', `/tournaments/${id}`)
   if (!isSetupLike(received)) {
     throw Error('Received data is invalid - Not SetupLike')
   }

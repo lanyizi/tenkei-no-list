@@ -1,9 +1,9 @@
 
-import { changesValidator } from '@/models/validations'
+import { changesValidator, WithID } from '@/models/validations'
 import { Database } from './database'
 import { Tournament, Match, winMatch } from '@/models/tournament'
-import { NotAuthorizedError, BadRequestError } from './api'
-import { isEdit, PlayerNameEdit, MatchEdit } from '@/models/changes'
+import { NotAuthorizedError, BadRequestError, NotImplementedError } from './api'
+import { PlayerNameEdit, MatchEdit, Edit } from '@/models/changes'
 import { Setup } from '@/models/setup'
 
 const players = ['p1', 'p2'] as const
@@ -20,14 +20,17 @@ export const changeHandler = (
   user: number,
   database: Database,
   id: number,
-  body: unknown
+  body: Edit
 ) => {
   const chain = database.db.get('tournaments')
-  const found = chain.find({ id }).value() as Setup | Tournament
-  if (found === undefined || found.status !== 'started') {
-    throw new Error('invalid state')
+  const found = chain.find({ id }).value() as Setup | Tournament | undefined
+  if (found === undefined) {
+    throw new BadRequestError('Invalid tournament')
   }
-  const tournament = { ...found } as Tournament
+  if (found.status !== 'started') {
+    throw new NotImplementedError('Tournament not started yet')
+  }
+  const tournament = { ...found }
 
   const { organizer, referees } = tournament.information
 
@@ -36,9 +39,6 @@ export const changeHandler = (
   }
 
   // validate
-  if (!isEdit(body)) {
-    throw new BadRequestError('Invalid input object')
-  }
   changesValidator(tournament, body)
 
   if (body.type === 'nameEdit') {

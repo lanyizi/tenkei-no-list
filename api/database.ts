@@ -5,13 +5,13 @@ import type { Referee } from '@/models/referee'
 import { Tournament } from '@/models/tournament'
 import { Setup } from '@/models/setup'
 import type { WithID } from '@/models/validations'
-import { Changes } from '@/models/changes'
+import { CommitedEdit } from '@/models/changes'
 
 
 type DataBaseModel = {
   tournaments: WithID<Tournament | Setup>[];
   referees: WithID<Referee>[];
-  changes: WithID<Changes>[];
+  changes: WithID<CommitedEdit>[];
 }
 
 export class Database {

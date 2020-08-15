@@ -4,7 +4,7 @@ import isString from 'lodash/isString'
 import isNull from 'lodash/isNull'
 
 const isUnknown = (x: unknown): x is unknown => true // eslint-disable-line
-const isNumberOrNull = (x: unknown): x is number | null => 
+const isNumberOrNull = (x: unknown): x is number | null =>
   isNumber(x) || isNull(x)
 const isArrayOfNumberOfNull = (x: unknown): x is (number | null)[] =>
   isArray(x, isNumberOrNull)
@@ -56,18 +56,10 @@ export const isEdit = (x: unknown): x is Edit =>
   isMatchEdit(x) || isPlayerNameEdit(x)
 
 const commitedEditDefinition = {
+  tournament: isNumber,
   referee: isNumber,
   date: isNumber,
   edit: isEdit
 }
 export type CommitedEdit = FromDefinition<typeof commitedEditDefinition>
-export const isCommitededit = (x: unknown): x is CommitedEdit =>
-  getTypeChecker(commitedEditDefinition)(x)
-
-const changesDefinition = {
-  changes(x: unknown): x is CommitedEdit[] {
-    return isArray(x, isCommitededit)
-  }
-}
-export type Changes = FromDefinition<typeof changesDefinition>
-export const isChanges = getTypeChecker(changesDefinition)
+export const isCommitedEdit = getTypeChecker(commitedEditDefinition)

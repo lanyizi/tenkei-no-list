@@ -179,12 +179,10 @@ export default Vue.extend({
           .map((k) => this.edited[k])
           .filter(notNull)
           .map((e) => {
-            return request(
-              "post",
-              `/changes/${this.tournamentId}/changes`,
-              this.token,
-              e
-            );
+            return request("POST", "/changes", this.token, {
+              tournament: parseInt(this.tournamentId),
+              ...e,
+            });
           });
         await Promise.all(promises);
         this.$emit("refresh-requested");

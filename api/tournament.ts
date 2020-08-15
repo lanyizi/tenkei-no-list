@@ -1,4 +1,4 @@
-import { EditHandler, BadRequestError, NotAuthorizedError, NotImplementedError } from "./api";
+import { BadRequestError, NotAuthorizedError, NotImplementedError } from "./api";
 import { Tournament } from '@/models/tournament';
 import {
   tournamentValidator,
@@ -12,11 +12,11 @@ import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 
 
-export const tournament: EditHandler<WithID<Tournament | Setup>> = (
-  user,
-  current,
-  body,
-  next
+export const tournament = (
+  user: number,
+  current: WithID<Tournament | Setup>,
+  body: unknown,
+  next: () => void
 ): void => {
   // validate tournament
   tournamentValidator(current, body);
@@ -34,11 +34,11 @@ export const tournament: EditHandler<WithID<Tournament | Setup>> = (
   return next()
 }
 
-export const information: EditHandler<Information> = (
-  user,
-  current,
-  body,
-  next
+export const information = (
+  user: number,
+  current: Information,
+  body: unknown,
+  next: () => void
 ) => {
   if (!isObject(body) || !has(body, 'information')) {
     throw new BadRequestError('Body has no information to be updated')

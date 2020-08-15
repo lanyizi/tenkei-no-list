@@ -4,18 +4,18 @@
 import { stat } from "fs"
 import pify from "pify"
 import jsonServer from "json-server"
-import has from "lodash/has"
 import ReadWriteLock from "rwlock"
 import {
   ValidationError,
-  tournamentValidator,
-  WithID
+  tournamentValidator
 } from '@/models/validations'
+import { CommitedEdit, isEdit } from '@/models/changes'
+import { has } from '@/utils'
 import { tournament, information } from './tournament'
 import { Database } from './database'
 import { changeHandler } from './changes'
-import { CommitedEdit, Changes } from '@/models/changes'
-import isString from 'lodash/isString'
+import isObject from 'lodash/isObject'
+import isNumber from 'lodash/isNumber'
 const asyncStat = pify(stat)
 
 const server = jsonServer.create()
@@ -30,13 +30,6 @@ export class NotAuthorizedError extends Error { }
 export class NotFoundError extends Error { }
 export class BadRequestError extends Error { }
 export class NotImplementedError extends Error { }
-
-export type EditHandler<T> = (
-  user: number,
-  old: T,
-  body: unknown,
-  next: () => void
-) => void;
 
 export const retriveId = (url: string, type: string) => {
   const prefix = `/${type}/`
@@ -89,7 +82,8 @@ server.use(async (req, res, next) => {
 
     const user = await database.getUser(req)
 
-    const { originalUrl, body } = req
+    const originalUrl = req.originalUrl
+    const body: unknown = req.body
     const method = req.method.toLowerCase()
     if (method === 'get' || method === 'head') {
       // everything except referees is readable by everyone
@@ -139,19 +133,25 @@ server.use(async (req, res, next) => {
 
     if (method === 'post') {
       // remove id so it will be auto generated instead
-      if (typeof body === 'object' && has(body, 'id')) {
+      if (isObject(body) && has(body, 'id')) {
         delete body.id;
       }
 
-      const changesId = retriveId(originalUrl, 'changes')
-      if (changesId !== -1) {
-        if (originalUrl !== `/changes/${changesId}/changes`) {
-          throw new BadRequestError()
+      if (originalUrl === '/changes') {
+        if (!isEdit(body)) {
+          throw new BadRequestError('Invalid input object')
         }
+        if (!has(body, 'tournament') || !isNumber(body.tournament)) {
+          throw new BadRequestError('Change has no associated tournament id')
+        }
+        const tournament = body.tournament
+        // remove tournament id after acquiring it
+        delete body.tournament
         // acquire write lock
-        await lock('writeLock', `${changesId}`)
-        changeHandler(user, database, changesId, body)
+        await lock('writeLock', `${tournament}`)
+        changeHandler(user, database, tournament, body)
         const commited: CommitedEdit = {
+          tournament,
           referee: user,
           date: Math.floor(Date.now() / 1000),
           edit: body
@@ -169,19 +169,6 @@ server.use(async (req, res, next) => {
         // validate tournament
         tournamentValidator(undefined, req.body)
 
-        const tournaments: any = database.db.get('tournaments')
-        // assign id (assuming id creation is atomic)
-        const newId: number | string = tournaments.createId().value()
-        if (isString(newId)) {
-          throw Error('unexpected string type id')
-        }
-        // create write lock
-        await lock('writeLock', `${newId}`)
-        req.body.id = newId
-        // create changes
-        const changes: any = database.db.get('changes')
-        const newChanges: WithID<Changes> = { id: req.body.id, changes: [] }
-        changes.insert(newChanges).value()
         // let json-server handle the rest
         return next()
       }
@@ -206,6 +193,8 @@ server.use(async (req, res, next) => {
         throw new NotAuthorizedError(`Unexpected path ${originalUrl}`)
       }
 
+      // create write lock
+      await lock('writeLock', `${t.id}`)
       // check method: currently patch is only used to update tournament
       // information
       switch (method) {

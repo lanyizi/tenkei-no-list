@@ -2,7 +2,9 @@ import {
   Tournament,
   isMatch,
   isSingleElimination,
-  isDoubleElimination
+  isDoubleElimination,
+  Match,
+  isTournament
 } from '@/models/tournament';
 import {
   Information,
@@ -11,8 +13,7 @@ import {
   isSetupLike,
   isSetup
 } from '@/models/setup';
-import { isTournament } from './tournament/tournament';
-import { Edit, isEdit } from './changes';
+import { Edit, isEdit } from '@/models/changes';
 import isEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
 import isObject from 'lodash/isObject';
@@ -53,7 +54,7 @@ export const matchValidator = (
   tournament: Tournament,
   matchId: number,
   newMatch: unknown
-) => {
+): asserts newMatch is Match => {
   if (!isMatch(newMatch)) {
     throw new ValidationError(ValidationErrorType.InvalidFormat);
   }
@@ -106,10 +107,11 @@ export const matchValidator = (
   }
 }
 
-export const informationValidator = (
+
+export const informationValidator: (
   old: Information | undefined,
   edited: unknown
-) => {
+) => asserts edited is Information = (old, edited) => {
   if (!isInformation(edited)) {
     throw new ValidationError(ValidationErrorType.InvalidFormat);
   }
@@ -131,10 +133,10 @@ export const refereeChanged = (old: Information, edited: unknown) => {
   return old.referees.some((r, i) => r !== edited.referees[i]);
 }
 
-export const tournamentValidator = (
+export const tournamentValidator: (
   old: WithID<Setup | Tournament> | undefined,
   edited: unknown
-) => {
+) => asserts edited is Setup | Tournament = (old, edited) => {
   if (!isSetupLike(edited)) {
     throw new ValidationError(ValidationErrorType.InvalidFormat);
   }

@@ -34,20 +34,6 @@ import { nCopies } from "@/utils";
 
 type ElementVM = MatchVM | null;
 
-export type MatchEditResult = {
-  editedPlayers: { id: number; newName: string }[];
-  matchId: number;
-  editedScores: { playerIndex: number; newScore: number | null }[];
-} & (
-  | {
-      editedWinner: undefined;
-    }
-  | {
-      editedWinner: number | null;
-      playersInNextMatches: { matchId: number; playerIndex: number }[];
-    }
-);
-
 export default Vue.extend({
   components: {
     Match,

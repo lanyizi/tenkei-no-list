@@ -9,6 +9,7 @@
     "continue": "继续",
     "loading": "正在加载……",
     "submit": "提交",
+    "save": "保存",
     "cancel": "取消",
     "cannotLoad": "加载失败：{why}",
     "unhandledError": "未处理的错误"

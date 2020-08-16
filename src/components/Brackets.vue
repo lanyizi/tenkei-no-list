@@ -43,7 +43,7 @@ export default Vue.extend({
     matchEditorId: null as number | null,
   }),
   props: {
-    tournamentId: String,
+    tournamentId: Number,
     model: Object as () => Tournament,
     token: String,
   },

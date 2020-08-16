@@ -66,7 +66,7 @@ export default Vue.extend({
     bestOf: Number,
     winnerEditable: Boolean,
     token: String,
-    tournamentId: String,
+    tournamentId: Number,
     matchId: Number,
     original: Array as () => PlayerVM[],
   },
@@ -180,7 +180,7 @@ export default Vue.extend({
           .filter(notNull)
           .map((e) => {
             return request("POST", "/changes", this.token, {
-              tournament: parseInt(this.tournamentId),
+              tournament: this.tournamentId,
               ...e,
             });
           });

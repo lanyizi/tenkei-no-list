@@ -31,7 +31,7 @@ export const request = async (
   return received
 }
 
-export const loadTournament = async (id: string) => {
+export const loadTournament = async (id: number) => {
   const received = await request('GET', `/tournaments/${id}`)
   if (!isSetupLike(received)) {
     throw Error('Received data is invalid - Not SetupLike')

@@ -32,7 +32,7 @@ export default Vue.extend({
     SetupComponent,
   },
   props: {
-    id: String,
+    id: Number,
     token: String,
   },
   data: () => ({
@@ -83,7 +83,7 @@ export default Vue.extend({
         return Promise.resolve(false);
       }
       return request("PUT", `/tournaments/${this.id}`, this.token, {
-        id: parseInt(this.id),
+        id: this.id,
         ...createFromSetup(this.model),
       }).then(() => true);
     },

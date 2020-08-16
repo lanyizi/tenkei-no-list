@@ -47,7 +47,7 @@ export default Vue.extend({
     Information,
   },
   props: {
-    id: String,
+    id: Number,
     token: String,
   },
   data: () => ({

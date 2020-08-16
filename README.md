@@ -1,5 +1,7 @@
 # Tenkei No List
 
+Design & image assets provided by Inkian.
+
 ## Project setup
 ```
 npm install

@@ -1,17 +1,20 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/new">New</router-link> |
+      <router-link to="/">Home</router-link>|
+      <router-link to="/new">New</router-link>|
       <router-link to="/about">About</router-link>
       <template v-if="user === 0">
-        | <router-link to="/referees">Referees</router-link>
+        |
+        <router-link to="/referees">Referees</router-link>
       </template>
       <template v-if="$route.name === 'Tournament'">
-        | <router-link :to="{ name: 'Settings', params: $route.params }">Settings</router-link>
+        |
+        <router-link :to="{ name: 'Settings', params: $route.params }">Settings</router-link>
       </template>
       <template v-else-if="$route.name === 'Settings'">
-        | <router-link :to="{ name: 'Tournament', params: $route.params }">Bracket</router-link>
+        |
+        <router-link :to="{ name: 'Tournament', params: $route.params }">Bracket</router-link>
       </template>
     </div>
     <Auth :referee-names="refereeNames" v-model="user" @token="token = $event"></Auth>
@@ -21,9 +24,6 @@
 <script lang="ts">
 import Vue from "vue";
 import Auth from "@/components/Auth.vue";
-import { isArray } from "@/utils";
-import { request } from "@/request";
-import isString from "lodash/isString";
 
 export default Vue.extend({
   components: {
@@ -32,25 +32,8 @@ export default Vue.extend({
   data: () => ({
     user: -1,
     token: "",
-    refereeNames: [] as string[],
+    refereeNames: {} as Partial<Record<number, string>>,
   }),
-  methods: {
-    async updateReferees() {
-      const names = await request("GET", "/refereeNames").catch(() => null);
-      if (!isArray(names, isString)) {
-        return;
-      }
-      this.refereeNames = names;
-    },
-  },
-  timers: {
-    updateReferees: {
-      autostart: true,
-      repeat: true,
-      immediate: true,
-      time: 60_000,
-    },
-  },
 });
 </script>
 <style>

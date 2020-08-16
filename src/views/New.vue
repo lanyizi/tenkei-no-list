@@ -2,7 +2,7 @@
   <div>
     <div v-if="user >= 0">
       <div v-if="setup != null">
-        <SetupComponent :user="user" :referee-names="refereeNames" v-model="setup" />
+        <SetupComponent :user="user" v-model="setup" />
         <button :disabled="disabled" @click="createTournament">{{ $t('createTournament') }}</button>
         <button
           :disabled="disabled"
@@ -32,8 +32,7 @@ export default Vue.extend({
   components: { SetupComponent },
   props: {
     user: Number,
-    token: String,
-    refereeNames: Array as () => string[],
+    token: String
   },
   data: () => ({
     name: "",

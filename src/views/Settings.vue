@@ -6,12 +6,9 @@
         {{ $t('tournamentSetup.conflictWarning') }}
         <br />
         {{ $t('tournamentSetup.hintConflictWarning') }}
-        <SetupComponent v-if="model" :token="token" :referee-names="refereeNames" v-model="model" />
+        <SetupComponent v-if="model" :token="token" v-model="model" />
         <div v-else>{{ $t('generic.unhandledError') }}</div>
-        <button
-          :disabled="disabled"
-          v-on:click="endAction(saveTournament)"
-        >{{ $t('generic.save') }}</button>
+        <button :disabled="disabled" v-on:click="endAction(saveTournament)">{{ $t('generic.save') }}</button>
         <button
           :disabled="disabled"
           v-on:click="endAction(createTournament)"
@@ -35,7 +32,6 @@ export default Vue.extend({
     SetupComponent,
   },
   props: {
-    refereeNames: Array as () => string[],
     id: String,
     token: String,
   },

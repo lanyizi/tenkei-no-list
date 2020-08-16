@@ -26,7 +26,7 @@
         </td>
         <td>
           <button
-            v-on:click="editPassword(i)"
+            v-on:click="editPassword(referee)"
             :disabled="uploading || !referee.password"
           >{{ $t('generic.submit') }}</button>
         </td>
@@ -36,18 +36,18 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
-import { request } from "@/request";
-import { PreReferee } from "@/models/referee";
-import { isArray } from "@/utils";
-import { isString } from "lodash";
 import { TranslateResult } from "vue-i18n";
+import { request, loadReferees } from "@/request";
+import { PreReferee } from "@/models/referee";
+import { WithID } from "@/models/validations";
+
 export default Vue.extend({
   data: () => ({
     uploading: false,
     placeholderMessage: "" as TranslateResult,
     newUsername: "",
     newPassword: "",
-    referees: [] as PreReferee[],
+    referees: [] as WithID<PreReferee>[],
   }),
   props: {
     token: String,
@@ -68,11 +68,9 @@ export default Vue.extend({
   methods: {
     async loadReferees() {
       try {
-        const loaded = await request("GET", "/refereeNames");
-        if (!isArray(loaded, isString)) {
-          throw Error("Response not array of string");
-        }
-        this.referees = loaded.map((username) => ({
+        const loaded = await loadReferees();
+        this.referees = Array.from(loaded).map(([id, username]) => ({
+          id,
           username,
           password: "",
         }));
@@ -95,12 +93,11 @@ export default Vue.extend({
         this.uploading = false;
       }
     },
-    async editPassword(id: number) {
+    async editPassword(edited: WithID<PreReferee>) {
       try {
         this.uploading = true;
-        await request("PUT", `/referees/${id}`, this.token, {
-          id,
-          ...this.referees[id],
+        await request("PUT", `/referees/${edited.id}`, this.token, {
+          ...edited,
         });
         await this.loadReferees();
       } catch (why) {

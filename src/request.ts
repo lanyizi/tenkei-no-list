@@ -1,5 +1,8 @@
 import { isSetupLike, isSetup } from '@/models/setup'
 import { isTournament } from '@/models/tournament'
+import { getTypeChecker, isArray } from '@/utils'
+import isNumber from 'lodash/isNumber'
+import isString from 'lodash/isString'
 
 export const request = async (
   method: 'GET' | 'POST' | 'PUT' | 'PATCH',
@@ -23,7 +26,7 @@ export const request = async (
   })
   const received = await response.json()
   if (!response.ok) {
-    throw Error(`Response not ok: ${response.status} ${received.message}`)  
+    throw Error(`Response not ok: ${response.status} ${received.message}`)
   }
   return received
 }
@@ -37,4 +40,17 @@ export const loadTournament = async (id: string) => {
     throw Error('Received data is invalid - Not Tournament and Not Setup')
   }
   return received;
+}
+
+const refereesChecker = getTypeChecker({
+  id: isNumber,
+  username: isString,
+});
+
+export const loadReferees = async () => {
+  const names = await request("GET", "/refereeNames");
+  if (!isArray(names, refereesChecker)) {
+    throw Error('Received data is invalid - Not Referees[]');
+  }
+  return new Map(names.map(({ id, username }) => [id, username]));
 }

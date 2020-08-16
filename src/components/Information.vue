@@ -23,22 +23,37 @@
     </div>
     <span class="information-entry">
       <span class="information-key">{{$t('information.referees')}}</span>
-      <span class="information-value">{{ refereeNames.join(' ') }}</span>
+      <span class="information-value">{{ referees.join(' ') }}</span>
     </span>
   </div>
 </template>
 <script lang="ts">
 import Vue from "vue";
 import { Information } from "@/models/setup";
+import isString from "lodash/isString";
+import isEqual from "lodash/isEqual";
+import { loadReferees } from "@/request";
 
 export default Vue.extend({
   props: {
     value: Object as () => Information,
-    refereeNames: Array as () => string[],
   },
   data: () => ({
     readOnly: false,
+    refereeNames: new Map<number, string>(),
   }),
+  watch: {
+    // load referees list again if information.referees has changed
+    value: {
+      deep: true,
+      immediate: true,
+      async handler(val: Information, oldVal?: Information) {
+        if (!isEqual(val.referees, oldVal?.referees)) {
+          this.refereeNames = await loadReferees();
+        }
+      },
+    },
+  },
   methods: {
     update<K extends keyof Information>(key: K, value: Information[K]) {
       this.$emit("input", { ...this.value, [key]: value });
@@ -63,14 +78,16 @@ export default Vue.extend({
     },
     referees: {
       get(): string[] {
-        return [this.value.organizer, ...this.value.referees].map(
-          (i) => this.refereeNames[i]
-        );
+        return [this.value.organizer, ...this.value.referees]
+          .map((id) => this.refereeNames.get(id) ?? "?")
+          .filter(isString);
       },
       set(list: string[]) {
-        const newList = list
-          .map((n) => this.refereeNames.indexOf(n))
-          .filter((i) => i !== -1 && i !== this.value.organizer);
+        const newList = Array.from(this.refereeNames.entries())
+          .filter(([, name]) => {
+            list.includes(name);
+          })
+          .map(([id]) => id);
         this.update("referees", newList);
       },
     },

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <InformationComponent :read-only="false" :referee-names="refereeNames" v-model="information"></InformationComponent>
+    <InformationComponent :read-only="false" v-model="information" />
     <h3 class="settings-title">{{ $t('tournamentSetup.playerListSettings.title') }}</h3>
     <table class="player-list">
       <tbody>
@@ -64,7 +64,6 @@ export default Vue.extend({
   },
   props: {
     value: Object as () => Model,
-    refereeNames: Array as () => string[],
   },
   data: () => ({
     playersInput: "",

@@ -112,14 +112,11 @@ server.use(async (req, res, next) => {
           res.json(database.db.get('tournaments').map(t => t.id))
         },
         '/refereeNames'() {
-          const names: string[] = []
-          database.db.get('referees').forEach(({ id, username }) => {
-            id = parseInt(`${id}`, 10);
-            if (id >= 0) {
-              names[id] = username;
-            }
-          }).value()
-          res.json(Array.from(names))
+          const names = database.db
+            .get('referees')
+            .map(({ id, username }) => ({ id, username }))
+            .value()
+          res.json(names)
         },
         '/~'() {
           res.json({ user })

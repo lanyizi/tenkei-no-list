@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-if="value >= 0">
-      <span>{{ $t('auth.currentUser', { username: refereeNames[value] }) }}</span>
+      <span>{{ $t('auth.currentUser', { username }) }}</span>
       <button @click="logOut">{{ $t('auth.logout') }}</button>
     </template>
     <template v-else>
@@ -14,13 +14,12 @@
 <script lang="ts">
 import Vue from "vue";
 import { request } from "@/request";
-import { has } from '@/utils';
-import isObject from 'lodash/isObject';
+import { has } from "@/utils";
+import isObject from "lodash/isObject";
 
 export default Vue.extend({
   props: {
     value: Number,
-    refereeNames: Array as () => string[],
   },
   data: () => ({
     username: "",
@@ -30,7 +29,7 @@ export default Vue.extend({
     async logIn() {
       const token = `${btoa(this.username)} ${btoa(this.password)}`;
       const json = await request("GET", "/~", token);
-      if(!isObject(json) || !has(json, 'user')) {
+      if (!isObject(json) || !has(json, "user")) {
         return;
       }
       const user = parseInt(`${json.user}`) ?? -1;

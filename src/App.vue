@@ -17,8 +17,8 @@
         <router-link :to="{ name: 'Tournament', params: $route.params }">Bracket</router-link>
       </template>
     </div>
-    <Auth :referee-names="refereeNames" v-model="user" @token="token = $event"></Auth>
-    <router-view :user="user" :token="token" :referee-names="refereeNames" />
+    <Auth v-model="user" @token="token = $event"></Auth>
+    <router-view :user="user" :token="token" />
   </div>
 </template>
 <script lang="ts">
@@ -31,8 +31,7 @@ export default Vue.extend({
   },
   data: () => ({
     user: -1,
-    token: "",
-    refereeNames: {} as Partial<Record<number, string>>,
+    token: ""
   }),
 });
 </script>

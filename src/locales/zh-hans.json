@@ -18,6 +18,7 @@
   "bracket": {
     "isPreview": "比赛仍未开始，这个赛程表只是预览，有可能随时改变",
     "cannotDisplay": "目前无法显示赛程表：{why}，请检查比赛设置",
+    "numberOfPlayers": "参赛人数",
     "loserOf": "第{from}组的败者",
     "playerName": "玩家名称",
     "score": "分数",

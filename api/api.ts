@@ -17,6 +17,7 @@ import { changeHandler } from './changes'
 import isObject from 'lodash/isObject'
 import isNumber from 'lodash/isNumber'
 import { editReferee } from './user'
+import { SetupLike } from '@/models/setup'
 const asyncStat = pify(stat)
 
 const server = jsonServer.create()
@@ -108,8 +109,16 @@ server.use(async (req, res, next) => {
       }
 
       const actions: Partial<Record<string, () => void>> = {
-        '/tournamentIds'() {
-          res.json(database.db.get('tournaments').map(t => t.id))
+        '/tournamentDescs'() {
+          const descs: SetupLike[] = database.db
+            .get('tournaments')
+            .filter(t => {
+              return t.status === 'started' || t.information.organizer === user
+            })
+            .map(({ id, information, status, settings, players }) => ({
+              id, information, status, settings, players
+            })).value()
+          res.json(descs)
         },
         '/refereeNames'() {
           const names = database.db
@@ -121,7 +130,7 @@ server.use(async (req, res, next) => {
         '/~'() {
           res.json({ user })
         }
-      };
+      }
       const action = actions[originalUrl]
       if (action !== undefined) {
         return action()
@@ -138,7 +147,7 @@ server.use(async (req, res, next) => {
     if (method === 'post') {
       // remove id so it will be auto generated instead
       if (isObject(body) && has(body, 'id')) {
-        delete body.id;
+        delete body.id
       }
 
       switch (originalUrl) {

@@ -1,14 +1,34 @@
 <template>
   <div>
-    <template v-if="value >= 0">
-      <span>{{ $t('auth.currentUser', { username }) }}</span>
-      <button @click="logOut">{{ $t('auth.logout') }}</button>
-    </template>
-    <template v-else>
-      <input type="text" :placeholder="$t('auth.username')" v-model="username" />
-      <input type="password" :placeholder="$t('auth.password')" v-model="password" />
-      <button @click="logIn">{{ $t('auth.login') }}</button>
-    </template>
+    <v-btn dark v-if="value >= 0" @click="logOut">{{ $t('auth.logoutUser', { username }) }}</v-btn>
+    <v-dialog v-else max-width="400" v-model="openDialog">
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn dark text v-bind="attrs" v-on="on">{{ $t('auth.login') }}</v-btn>
+      </template>
+      <v-card>
+        <v-card-title class="headline grey lighten-2">{{ $t('auth.title') }}</v-card-title>
+        <v-card-text>
+          <v-form>
+            <v-text-field
+              prepend-icon="mdi-account-circle"
+              :label="$t('auth.username')"
+              v-model="username"
+            />
+            <v-text-field
+              prepend-icon="mdi-lock"
+              background-color="white"
+              :label="$t('auth.password')"
+              v-model="password"
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="success" @click="logIn">{{ $t('auth.login') }}</v-btn>
+          <v-spacer />
+          <v-btn color="info" @click="openDialog = false">{{ $t('generic.cancel') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script lang="ts">
@@ -22,6 +42,7 @@ export default Vue.extend({
     value: Number,
   },
   data: () => ({
+    openDialog: false,
     username: "",
     password: "",
   }),
@@ -36,6 +57,7 @@ export default Vue.extend({
       this.$emit("input", user);
       if (user !== -1) {
         this.$emit("token", token);
+        this.openDialog = false;
       }
     },
     logOut() {

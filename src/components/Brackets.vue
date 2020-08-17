@@ -2,7 +2,7 @@
   <div class="brackets">
     <table>
       <tr v-for="(row, j) in winnersBracket" :key="j">
-        <td v-for="(element, i) in row" in table :key="i">
+        <td v-for="(element, i) in row" in table :key="i" class="match-cell">
           <Match v-if="element != null" :value="element" @click.native="onMatchClick(element.id)"></Match>
           <MatchEditor
             v-if="element != null && element.id === matchEditorId"
@@ -164,24 +164,9 @@ export default Vue.extend({
   },
 });
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-td {
-  border: 1px solid black;
-}
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.match-cell {
+  width: 200px;
+  height: 50px;
 }
 </style>

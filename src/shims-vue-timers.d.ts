@@ -1,5 +1,3 @@
-/// <reference path="shims-vue-timers-vue.d.ts" />
-
 declare module 'vue-timers' {
   import Vue, { PluginFunction } from 'vue'
 
@@ -9,7 +7,7 @@ declare module 'vue-timers' {
      * 
      * Default: timer key (with object notation)
      */
-    name?: string,
+    name?: string;
   
     /**
      * Tick callback or method name from component
@@ -18,21 +16,21 @@ declare module 'vue-timers' {
      * 
      * Default: name
      */
-    callback?: Function | string,
+    callback?: Function | string;
   
     /**
      * Autostart timer from created hook
      * 
      * Default: false
      */
-    autostart?: boolean,
+    autostart?: boolean;
   
     /**
      * Set true to repeat (with setInterval) or false (setTimeout)
      * 
      * Default: false
      */
-    repeat?: boolean,
+    repeat?: boolean;
   
     /**
      * Set true to call first tick immediate 
@@ -41,21 +39,21 @@ declare module 'vue-timers' {
      * 
      * Default: false
      */
-    immediate?: boolean,
+    immediate?: boolean;
   
     /**
      * Time between ticks
      * 
      * Default: 1000
      */
-    time?: number
+    time?: number;
     
     /**
      * Switch timer`s status between activated and deactivated
      * 
      * Default: false
      */
-    isSwitchTab?: boolean
+    isSwitchTab?: boolean;
   }
 
   export default class VueTimers {

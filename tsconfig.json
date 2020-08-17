@@ -16,7 +16,7 @@
     "types": [
       "webpack-env",
       "webpack",
-      "webpack-env"
+      "vuetify"
     ],
     "paths": {
       "@/*": [

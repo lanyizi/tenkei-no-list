@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import VueRouter, { RouteConfig } from 'vue-router'
+import VueRouter, { RouteConfig, Route } from 'vue-router'
 import Home from '../views/Home.vue'
 import New from '@/views/New.vue'
 import Tournament from "@/views/Tournament.vue"
@@ -7,6 +7,11 @@ import Settings from "@/views/Settings.vue"
 import Referees from "@/views/Referees.vue"
 
 Vue.use(VueRouter)
+
+const idToNumber = (route: Route) => ({
+  ...route.params,
+  id: +route.params.id
+})
 
 const routes: Array<RouteConfig> = [
   {
@@ -23,13 +28,13 @@ const routes: Array<RouteConfig> = [
     path: '/:id(\\d+)',
     name: 'Tournament',
     component: Tournament,
-    props: true
+    props: idToNumber
   },
   {
     path: '/settings/:id(\\d+)',
     name: 'Settings',
     component: Settings,
-    props: true
+    props: idToNumber
   },
   {
     path: '/referees',

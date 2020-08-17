@@ -1,7 +1,5 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    {{ $t('title') }}
     <div v-if="placeholderMessage">{{ placeholderMessage }}</div>
     <table v-else>
       <thead>

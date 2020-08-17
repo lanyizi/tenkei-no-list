@@ -166,7 +166,6 @@ export default Vue.extend({
 </script>
 <style scoped>
 .match-cell {
-  width: 200px;
-  height: 50px;
+  padding: 10px 40px;
 }
 </style>

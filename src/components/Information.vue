@@ -1,31 +1,27 @@
 <template>
-  <div class="information">
-    <h3>
+  <v-card dark class="information">
+    <v-card-title dark>
       <span v-if="readOnly">{{ name }}</span>
-      <input v-else type="text" :placeholder="$t('information.name')" v-model="name" />
-    </h3>
-    <span class="information-entry">
-      <span class="information-key">{{$t('information.organizer')}}</span>
-      <span class="information-value">{{ refereeNames[value.organizer] }}</span>
-    </span>
-    <span class="information-entry">
-      <span class="information-key">{{$t('information.date')}}</span>
-      <span v-if="readOnly" class="information-value">{{ $d(tournamentDate) }}</span>
-      <span v-else>
+      <v-text-field v-else :label="$t('information.name')" v-model="name" />
+    </v-card-title>
+    <v-card-subtitle>{{$t('information.organizer')}}</v-card-subtitle>
+    <v-card-text>{{ refereeNames.get(value.organizer) || "?" }}</v-card-text>
+    <v-card-subtitle>{{$t('information.date')}}</v-card-subtitle>
+    <v-card-text>
+      <template v-if="readOnly">{{ $d(tournamentDate) }}</template>
+      <template v-else>
         <input type="date" v-model="date" />
         <input type="time" v-model="time" />
-      </span>
-    </span>
-    <p v-if="readOnly">{{ description }}</p>
-    <div v-else>
-      <h4>{{ $t('information.description') }}</h4>
-      <textarea v-model="description"></textarea>
-    </div>
-    <span class="information-entry">
-      <span class="information-key">{{$t('information.referees')}}</span>
-      <span class="information-value">{{ referees.join(' ') }}</span>
-    </span>
-  </div>
+      </template>
+    </v-card-text>
+    <v-card-text v-if="readOnly">{{ description }}</v-card-text>
+    <template v-else>
+      <v-card-subtitle>{{ $t('information.description') }}</v-card-subtitle>
+      <v-textarea v-model="description"></v-textarea>
+    </template>
+    <v-card-subtitle>{{$t('information.referees')}}</v-card-subtitle>
+    <v-card-text class="information-value">{{ referees.join(' ') }}</v-card-text>
+  </v-card>
 </template>
 <script lang="ts">
 import Vue from "vue";
@@ -37,9 +33,12 @@ import { loadReferees } from "@/request";
 export default Vue.extend({
   props: {
     value: Object as () => Information,
+    readOnly: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: () => ({
-    readOnly: false,
     refereeNames: new Map<number, string>(),
   }),
   watch: {

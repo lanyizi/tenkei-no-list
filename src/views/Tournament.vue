@@ -27,15 +27,12 @@ import Brackets from "@/components/Brackets.vue";
 import Information from "@/components/Information.vue";
 import { TranslateResult } from "vue-i18n";
 import { loadTournament } from "@/request";
+import { WithID } from "@/models/validations";
 
 type Processed =
   | {
-      type: "model";
-      data: Tournament;
-    }
-  | {
-      type: "preview";
-      data: Tournament;
+      type: "model" | "preview";
+      data: WithID<Tournament>;
     }
   | {
       type: "previewError";
@@ -51,10 +48,15 @@ export default Vue.extend({
     id: Number,
     token: String,
   },
-  data: () => ({
-    model: createSetup(-1) as Setup | Tournament,
-    placeholderMessage: null as TranslateResult | null,
-  }),
+  data() {
+    return {
+      model: {
+        id: this.id,
+        ...createSetup(-1),
+      } as WithID<Setup | Tournament>,
+      placeholderMessage: null as TranslateResult | null,
+    };
+  },
   watch: {
     id: {
       immediate: true,
@@ -90,7 +92,10 @@ export default Vue.extend({
         return { type: "model", data: this.model };
       }
       try {
-        return { type: "preview", data: createFromSetup(this.model) };
+        return {
+          type: "preview",
+          data: { id: this.id, ...createFromSetup(this.model) },
+        };
       } catch (why) {
         return { type: "previewError", why };
       }

@@ -19,6 +19,7 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
+import { Tournament } from "@/models/tournament";
 
 export type PlayerVM = {
   id: number | null;
@@ -32,6 +33,40 @@ export type MatchVM = {
   p1: PlayerVM;
   p2: PlayerVM;
   next: number | null;
+};
+
+export const matchToVM = (
+  model: Tournament,
+  matchId: number,
+  translator: Vue["$t"]
+): MatchVM => {
+  const match = model.matches[matchId];
+  const origins = model.origins[matchId]?.filter(
+    (m) => model.matches[m].winner === null
+  );
+  // get hint of who might come to this match.
+  // useful for losers' bracket
+  const maybeHint = (from?: number) => {
+    if (from === undefined) {
+      return "";
+    }
+    if (model.matches[from].loserNext === matchId) {
+      return `${translator("bracket.loserOf", { from })}`;
+    }
+    return "";
+  };
+  const playerToVM = (id: number | null, score: number | null): PlayerVM => ({
+    id,
+    name: id !== null ? model.players[id] : maybeHint(origins?.pop()),
+    score,
+    isWinner: id !== null && id === match.winner,
+  });
+  return {
+    id: matchId,
+    p1: playerToVM(match.p1, match.p1Score),
+    p2: playerToVM(match.p2, match.p2Score),
+    next: match.winnerNext,
+  };
 };
 
 export default Vue.extend({

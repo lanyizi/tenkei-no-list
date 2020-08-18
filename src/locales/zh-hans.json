@@ -41,6 +41,7 @@
     "manageReferee": "管理赛务"
   },
   "matchEdit": {
+    "title": "修改比分",
     "cannotEdit": "由于下一轮的比赛已经结束，因此现在无法修改比赛胜利者。",
     "hintCannotEdit": "假如真的要修改本轮胜利者，请先修改下一轮的比赛。"
   },

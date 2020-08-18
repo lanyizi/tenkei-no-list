@@ -1,8 +1,10 @@
-import { isSetupLike, isSetup } from '@/models/setup'
-import { isTournament } from '@/models/tournament'
+import { isSetupLike, isSetup, Setup } from '@/models/setup'
+import { isTournament, Tournament } from '@/models/tournament'
 import { getTypeChecker, isArray } from '@/utils'
+import { hasId, WithID } from '@/models/validations'
 import isNumber from 'lodash/isNumber'
 import isString from 'lodash/isString'
+
 
 export const request = async (
   method: 'GET' | 'POST' | 'PUT' | 'PATCH',
@@ -31,8 +33,13 @@ export const request = async (
   return received
 }
 
-export const loadTournament = async (id: number) => {
+export const loadTournament = async (
+  id: number
+): Promise<WithID<Tournament | Setup>> => {
   const received = await request('GET', `/tournaments/${id}`)
+  if (!hasId(received) || received.id !== id) {
+    throw Error('Received data does not have id or id is incorrect')
+  }
   if (!isSetupLike(received)) {
     throw Error('Received data is invalid - Not SetupLike')
   }

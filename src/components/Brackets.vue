@@ -1,5 +1,20 @@
 <template>
   <div class="brackets">
+    <v-dialog
+      max-width="600"
+      :value="matchEditorId != null"
+      @input="matchEditorId = $event ? matchEditorId : null"
+    >
+      <MatchEditor
+        v-if="matchEditorId != null"
+        :best-of="3"
+        :token="token"
+        :tournament="model"
+        :match-id="matchEditorId"
+        @refresh-requested="$emit('refresh-requested')"
+        @close="matchEditorId = null"
+      ></MatchEditor>
+    </v-dialog>
     <table>
       <tr>
         <th v-for="(r, i) in winnersRounds" :key="i">{{ r }}</th>
@@ -12,17 +27,6 @@
             :value="element"
             @click.native="onMatchClick(element.id)"
           ></Match>
-          <MatchEditor
-            v-if="element != null && element.id === matchEditorId"
-            :best-of="3"
-            :winner-editable="winnerEditable"
-            :token="token"
-            :tournament-id="tournamentId"
-            :match-id="element.id"
-            :original="[element.p1, element.p2]"
-            @refresh-requested="$emit('refresh-requested')"
-            @close="matchEditorId = null"
-          ></MatchEditor>
         </td>
       </tr>
     </table>
@@ -31,7 +35,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Match, { MatchVM, PlayerVM } from "./Match.vue";
+import Match, { MatchVM, matchToVM } from "./Match.vue";
 import MatchEditor from "./MatchEditor.vue";
 import {
   Tournament,
@@ -40,6 +44,7 @@ import {
 } from "@/models/tournament";
 import { nCopies, notNull } from "@/utils";
 import jsPlumb, { jsPlumbInstance } from "jsplumb";
+import { WithID } from "@/models/validations";
 
 type ElementVM = MatchVM | null;
 
@@ -103,10 +108,10 @@ export default Vue.extend({
     bracketId: `lanyi-brackets-${++id}`,
     connectors: new Connectors(),
     matchEditorId: null as number | null,
+    openEditor: false,
   }),
   props: {
-    tournamentId: Number,
-    model: Object as () => Tournament,
+    model: Object as () => WithID<Tournament>,
     token: String,
   },
   watch: {
@@ -162,37 +167,7 @@ export default Vue.extend({
       this.matchEditorId = id;
     },
     matchToVM(matchId: number): MatchVM {
-      const match = this.model.matches[matchId];
-      // who might come to this match
-      const origins = this.model.origins[matchId]?.filter(
-        (m) => this.model.matches[m].winner === null
-      );
-      // get hint of who might come to this match.
-      // useful for losers' bracket
-      const maybeHint = (from?: number) => {
-        if (from === undefined) {
-          return "";
-        }
-        if (this.model.matches[from].loserNext === matchId) {
-          return `${this.$t("bracket.loserOf", { from })}`;
-        }
-        return "";
-      };
-      const playerToVM = (
-        id: number | null,
-        score: number | null
-      ): PlayerVM => ({
-        id,
-        name: id !== null ? this.model.players[id] : maybeHint(origins?.pop()),
-        score,
-        isWinner: id !== null && id === match.winner,
-      });
-      return {
-        id: matchId,
-        p1: playerToVM(match.p1, match.p1Score),
-        p2: playerToVM(match.p2, match.p2Score),
-        next: match.winnerNext,
-      };
+      return matchToVM(this.model, matchId, this.$t);
     },
     roundsToTable(rounds: number[][]): ElementVM[][] {
       if (rounds.length === 0) {

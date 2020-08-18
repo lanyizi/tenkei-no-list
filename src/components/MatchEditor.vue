@@ -1,49 +1,60 @@
 <template>
-  <div class="match-editor">
-    <div v-if="!winnerEditable">
-      {{ $t('matchEdit.cannotEdit') }}
-      {{ $t('matchEdit.hintCannotEdit') }}
-    </div>
-    <table class="match-editor-fields">
-      <thead>
-        <td>{{ $t('bracket.playerName') }}</td>
-        <td>{{ $t('bracket.score') }}</td>
-        <td>{{ $t('bracket.winner') }}</td>
-      </thead>
-      <tr v-for="(row, i) in merged" :key="i">
-        <td>
-          <input type="text" :value="row.name" @input="editName(i, $event.target.value)" />
-        </td>
-        <td>
-          <input
-            type="number"
-            step="1"
-            :value="row.score"
-            v-on:input="editScore(i, parseInt($event.target.value))"
-          />
-        </td>
-        <td>
-          <input
-            type="checkbox"
-            :disabled="!winnerEditable"
-            :checked="row.isWinner"
-            v-on:input="editWinner(i, $event.target.checked)"
-          />
-        </td>
-      </tr>
-      <tr></tr>
-    </table>
-    <button :disabled="!hasEdits" @click="applyEdits">{{ $t('generic.submit') }}</button>
-    <button @click="emitClose">{{ $t('generic.cancel') }}</button>
-  </div>
+  <v-card class="lanyi-match-editor">
+    <v-card-title class="headline grey lighten-2">{{ $t('matchEdit.title') }}</v-card-title>
+    <v-card-text>
+      <div v-if="!winnerEditable">
+        {{ $t('matchEdit.cannotEdit') }}
+        {{ $t('matchEdit.hintCannotEdit') }}
+      </div>
+      <v-simple-table>
+        <thead>
+          <tr>
+            <td>{{ $t('bracket.playerName') }}</td>
+            <td>{{ $t('bracket.score') }}</td>
+            <td>{{ $t('bracket.winner') }}</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, i) in merged" :key="i">
+            <td>
+              <v-text-field :value="row.name" @input="editName(i, $event)" />
+            </td>
+            <td>
+              <v-text-field
+                type="number"
+                class="lanyi-score-input"
+                step="1"
+                :value="row.score"
+                v-on:input="editScore(i, parseInt($event))"
+              />
+            </td>
+            <td>
+              <v-checkbox
+                :disabled="!winnerEditable"
+                :input-value="row.isWinner"
+                @change="editWinner(i, $event)"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </v-simple-table>
+      <v-card-actions>
+        <v-btn color="success" :disabled="!hasEdits" @click="applyEdits">{{ $t('generic.submit') }}</v-btn>
+        <v-spacer />
+        <v-btn color="info" @click="emitClose">{{ $t('generic.cancel') }}</v-btn>
+      </v-card-actions>
+    </v-card-text>
+  </v-card>
 </template>
 <script lang="ts">
 import Vue from "vue";
-import { PlayerVM } from "./Match.vue";
+import { PlayerVM, matchToVM } from "./Match.vue";
 import { PlayerNameEdit, ScoreEdit, WinnerEdit } from "@/models/changes";
 import isEqual from "lodash/isEqual";
 import { notNull } from "@/utils";
 import { request } from "@/request";
+import { Tournament } from "@/models/tournament";
+import { WithID } from "@/models/validations";
 
 const createEditModel = (): {
   p1: PlayerNameEdit | null;
@@ -64,11 +75,9 @@ export default Vue.extend({
   }),
   props: {
     bestOf: Number,
-    winnerEditable: Boolean,
     token: String,
-    tournamentId: Number,
+    tournament: Object as () => WithID<Tournament>,
     matchId: Number,
-    original: Array as () => PlayerVM[],
   },
   watch: {
     original: {
@@ -82,6 +91,10 @@ export default Vue.extend({
     },
   },
   computed: {
+    original(): PlayerVM[] {
+      const { p1, p2 } = matchToVM(this.tournament, this.matchId, this.$t);
+      return [p1, p2];
+    },
     merged(): PlayerVM[] {
       const copy = this.original.map((x) => ({ ...x }));
       [copy[0].name, copy[1].name] = [this.edited.p1, this.edited.p2].map(
@@ -99,6 +112,17 @@ export default Vue.extend({
     },
     hasEdits(): boolean {
       return keys.some((k) => notNull(this.edited[k]));
+    },
+    // can the this match's winner be changed?
+    winnerEditable(): boolean {
+      const matches = this.tournament.matches;
+      const match = matches[this.matchId];
+      const nexts = [match.winnerNext, match.loserNext];
+      if (nexts.some((x) => x !== null && matches[x].winner !== null)) {
+        // some of next match finished, this match cannot be edited
+        return false;
+      }
+      return true;
     },
   },
   methods: {
@@ -180,7 +204,7 @@ export default Vue.extend({
           .filter(notNull)
           .map((e) => {
             return request("POST", "/changes", this.token, {
-              tournament: this.tournamentId,
+              tournament: this.tournament.id,
               ...e,
             });
           });
@@ -197,3 +221,9 @@ export default Vue.extend({
   },
 });
 </script>
+<style scoped>
+.lanyi-score-input {
+  max-width: 3em;
+  max-width: 5ch;
+}
+</style>

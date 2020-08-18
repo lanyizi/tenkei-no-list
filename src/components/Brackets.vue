@@ -1,9 +1,17 @@
 <template>
   <div class="brackets">
     <table>
-      <tr v-for="(row, j) in winnersBracket" :key="j">
-        <td v-for="(element, i) in row" in table :key="i" class="match-cell">
-          <Match v-if="element != null" :value="element" @click.native="onMatchClick(element.id)"></Match>
+      <tr>
+        <th v-for="(r, i) in winnersRounds" :key="i">{{ r }}</th>
+      </tr>
+      <tr v-for="{row, rowKey} in winnersBracket" :key="rowKey">
+        <td v-for="(element, i) in row" :key="element ? element.id : `~${i}`" class="match-cell">
+          <Match
+            v-if="element != null"
+            :id="getMatchElementId(element.id)"
+            :value="element"
+            @click.native="onMatchClick(element.id)"
+          ></Match>
           <MatchEditor
             v-if="element != null && element.id === matchEditorId"
             :best-of="3"
@@ -30,9 +38,60 @@ import {
   isDoubleElimination,
   isSingleElimination,
 } from "@/models/tournament";
-import { nCopies } from "@/utils";
+import { nCopies, notNull } from "@/utils";
+import jsPlumb, { jsPlumbInstance } from "jsplumb";
 
 type ElementVM = MatchVM | null;
+
+const getRowWithKey = (row: ElementVM[], j: number) => {
+  // create a unique id for each row based on the row content
+  // so two rows with same index and with exactly same content will have the
+  // same id.
+  // Useful for v-for :key
+  return {
+    row,
+    rowKey: j + row.map((x) => (x ? `m${x.id}` : `~`)).join(""),
+  };
+};
+type Table = ReturnType<typeof getRowWithKey>[];
+
+let id = 0;
+
+class Connectors {
+  _elementSet?: true;
+  _jsPlumb?: jsPlumbInstance;
+
+  setContainer(el: Element) {
+    if (this._elementSet) {
+      throw Error("Id already set");
+    }
+    this._elementSet = true;
+    const instance = jsPlumb.jsPlumb.getInstance({
+      Anchors: ['Right', 'Left'],
+      Connector: 'Flowchart',
+      Endpoint: 'Blank',
+      ConnectionsDetachable: false
+    });
+    return new Promise<void>((resolve) => {
+      instance.ready(() => {
+        instance.setContainer(el);
+        this._jsPlumb = instance;
+        resolve();
+      });
+    });
+  }
+
+  connect(params: jsPlumb.ConnectParams) {
+    if (!this._jsPlumb) {
+      throw Error("JsPlumb not ready");
+    }
+    this._jsPlumb.connect(params);
+  }
+
+  reset() {
+    this._jsPlumb?.reset();
+  }
+}
 
 export default Vue.extend({
   components: {
@@ -40,6 +99,8 @@ export default Vue.extend({
     MatchEditor,
   },
   data: () => ({
+    bracketId: `lanyi-brackets-${++id}`,
+    connectors: new Connectors(),
     matchEditorId: null as number | null,
   }),
   props: {
@@ -47,7 +108,52 @@ export default Vue.extend({
     model: Object as () => Tournament,
     token: String,
   },
+  watch: {
+    winnersBracket(value: Table, old: Table) {
+      old = old ?? [];
+      const contentChanged =
+        value.length !== old.length ||
+        value.some(({ rowKey }, i) => rowKey !== old[i].rowKey);
+      if (contentChanged) {
+        // reset connections
+        this.connectors.reset();
+        this.connectMatches(
+          this.winnersBracket.map(({ row }) =>
+            row.filter(notNull).map((r) => r.id)
+          )
+        );
+      }
+    },
+  },
+  async created() {
+    await this.$nextTick();
+    await this.connectors.setContainer(this.$el);
+    this.connectMatches(
+      this.winnersBracket.map(({ row }) => row.filter(notNull).map((r) => r.id))
+    );
+  },
   methods: {
+    getMatchElementId(matchId: number) {
+      return `${this.bracketId}-${matchId}`;
+    },
+    connectMatches(rounds: number[][]) {
+      const helper = (x: {
+        m: number;
+        next: number | null;
+      }): x is { m: number; next: number } => {
+        return x.next !== null;
+      };
+      const data = rounds
+        .flat()
+        .map((m) => ({ m, next: this.model.matches[m].winnerNext }))
+        .filter(helper);
+      for (const { m, next } of data) {
+        this.connectors.connect({
+          source: this.getMatchElementId(m),
+          target: this.getMatchElementId(next),
+        });
+      }
+    },
     onMatchClick(id: number) {
       if (this.matchEditorId !== null) {
         return;
@@ -87,7 +193,7 @@ export default Vue.extend({
         next: match.winnerNext,
       };
     },
-    roundsToTable(rounds: number[][]) {
+    roundsToTable(rounds: number[][]): ElementVM[][] {
       if (rounds.length === 0) {
         throw Error("empty rounds");
       }
@@ -122,7 +228,13 @@ export default Vue.extend({
     },
   },
   computed: {
-    winnersBracket(): ElementVM[][] {
+    winnersRounds(): string[] {
+      if (this.winnersBracket.length > 0) {
+        return nCopies(this.winnersBracket[0].row.length, () => "BO3");
+      }
+      return [];
+    },
+    winnersBracket(): Table {
       if (isDoubleElimination(this.model)) {
         const winners = this.model.winnersRounds;
         const rounds = winners.slice(0, winners.length - 1);
@@ -131,19 +243,21 @@ export default Vue.extend({
         const table = this.roundsToTable(rounds);
         const finalsRow = table.findIndex((row) => row.slice(-1)[0] !== null);
 
-        table.forEach((row, i) => {
-          const extraColumns = [i == finalsRow ? finalsVM : null];
+        table.forEach((row, j) => {
+          // finals
+          const extraColumns = [j == finalsRow ? finalsVM : null];
           if (finalsVM.next !== null) {
-            const element =
-              i == finalsRow ? this.matchToVM(finalsVM.next) : null;
+            // extra match
+            const element: ElementVM =
+              j == finalsRow ? this.matchToVM(finalsVM.next) : null;
             extraColumns.push(element);
           }
           row.push(...extraColumns);
         });
 
-        return table;
+        return table.map(getRowWithKey);
       } else if (isSingleElimination(this.model)) {
-        return this.roundsToTable(this.model.winnersRounds);
+        return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
       }
       return [];
     },
@@ -165,6 +279,10 @@ export default Vue.extend({
 });
 </script>
 <style scoped>
+.brackets {
+  position: relative;
+}
+
 .match-cell {
   padding: 10px 40px;
 }

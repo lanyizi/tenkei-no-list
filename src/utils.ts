@@ -1,7 +1,7 @@
 import lodashHas from 'lodash/has';
 import isObject from 'lodash/isObject';
 
-export const nCopies = <T>(n: number, generator: () => T) => {
+export const nCopies = <T>(n: number, generator: (i: number) => T) => {
   return [...Array(n)].map(generator);
 }
 

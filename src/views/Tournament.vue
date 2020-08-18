@@ -6,14 +6,15 @@
       <div
         v-if="processed.type === 'previewError'"
       >{{ $t('bracket.cannotDisplay', { why: processed.why }) }}</div>
-      <Brackets
-        v-else
-        :token="token"
-        :tournament-id="id"
-        :model="processed.data"
-        @refresh-requested="loadTournament"
-      />
-      <Information :value="model.information" />
+      <div v-else class="lanyi-brackets-container">
+        <Brackets
+          :token="token"
+          :tournament-id="id"
+          :model="processed.data"
+          @refresh-requested="loadTournament"
+        />
+      </div>
+      <Information read-only :value="model.information" />
     </div>
   </div>
 </template>
@@ -97,3 +98,9 @@ export default Vue.extend({
   },
 });
 </script>
+<style lang="css" scoped>
+.lanyi-brackets-container {
+  width: 100%;
+  overflow: auto;
+}
+</style>

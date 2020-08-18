@@ -89,6 +89,8 @@ export default Vue.extend({
 }
 
 .lanyi-match-player-name {
+  overflow: hidden;
+  white-space: nowrap;
   background: rgba(0, 0, 0, 0.6);
 }
 

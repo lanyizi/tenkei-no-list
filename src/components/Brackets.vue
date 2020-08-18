@@ -67,10 +67,11 @@ class Connectors {
     }
     this._elementSet = true;
     const instance = jsPlumb.jsPlumb.getInstance({
-      Anchors: ['Right', 'Left'],
-      Connector: 'Flowchart',
-      Endpoint: 'Blank',
-      ConnectionsDetachable: false
+      Anchors: ["Right", "Left"],
+      ConnectionsDetachable: false,
+      Connector: "Flowchart",
+      Endpoint: "Blank",
+      PaintStyle: { stroke: "black", strokeWidth: 2 },
     });
     return new Promise<void>((resolve) => {
       instance.ready(() => {
@@ -284,6 +285,6 @@ export default Vue.extend({
 }
 
 .match-cell {
-  padding: 10px 40px;
+  padding: 0 30px;
 }
 </style>

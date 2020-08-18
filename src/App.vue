@@ -99,6 +99,10 @@ export default Vue.extend({
 .lanyi-titlebar {
   background: url("~@/assets/title/T_titlebar.png");
 }
+.lanyi-main {
+  height: 0px;
+  overflow-y: auto;
+}
 .lanyi-main-tournament {
   background-image: url('~@/assets/mid/M_.png');
 }

@@ -119,28 +119,35 @@ export const createDoubleElimination = (
     }
   }
 
-  const losersOrigins = getOrigins(de, iota(de.matches.length));
-  type Proceeder = (id: number, winner: 'p1' | 'p2') => void;
-  const losersProceeder: Proceeder = (id, winner) => {
-    const match = de.matches[id];
-    if (match.winnerNext === null) {
-      throw Error('unexpected');
-    }
-    if (match[winner] !== null) {
-      return winMatch(de, id, winner);
-    }
 
-    const pseudoPlayer = winner === 'p1' ? match.p2 : match.p1;
-    const otherSource = losersOrigins[id]?.find(m => {
-      const match = de.matches[m];
-      return [match.p1, match.p2].every(p => p !== pseudoPlayer);
-    })
-    if (otherSource === undefined) {
-      throw Error('unpexpected other source null');
+  type Proceeder = (id: number, winner: 'p1' | 'p2') => void;
+  const getLosersProceeder = (filteredWinners: number[][]): Proceeder => {
+    const losersOrigins = getOrigins(de, filteredWinners.flat());
+    return (id, winner) => {
+      const match = de.matches[id];
+      if (match.winnerNext === null) {
+        throw Error('unexpected');
+      }
+      if (match[winner] !== null) {
+        return winMatch(de, id, winner);
+      }
+
+      const pseudoPlayer = winner === 'p1' ? match.p2 : match.p1;
+      const otherSource = losersOrigins[id]?.find(m => {
+        const match = de.matches[m];
+        return [match.p1, match.p2].every(p => p !== pseudoPlayer);
+      })
+      if (otherSource === undefined) {
+        throw Error('unpexpected other source null');
+      }
+      // loser in otherSource auto wins against pseudo player
+      // so it goes to match.winnerNext automatically
+      de.matches[otherSource].loserNext = match.winnerNext;
+      // update losersOrigins accordingly 
+      const nextOrigin = losersOrigins[match.winnerNext]
+        ?? (losersOrigins[match.winnerNext] = [])
+      nextOrigin.push(otherSource)
     }
-    // loser in otherSource auto wins against pseudo player
-    // so it goes to match.winnerNext automatically
-    de.matches[otherSource].loserNext = match.winnerNext;
   };
 
   // Shrink tournament
@@ -166,11 +173,12 @@ export const createDoubleElimination = (
     })).filter(round => round.length > 0)
   };
   // let real players automatically defeat pseudo players
+  // and then remove matches contaning pseudo players
   autoPlay(de.winnersRounds, (id, winner) => winMatch(de, id, winner));
-  autoPlay(de.losersRounds, losersProceeder);
-  // remove matches contaning pseudo players
   de.winnersRounds = roundsFilterer(de.winnersRounds);
+  autoPlay(de.losersRounds, getLosersProceeder(de.winnersRounds));
   de.losersRounds = roundsFilterer(de.losersRounds);
+
   de.origins = getOrigins(
     de,
     de.winnersRounds.flat().concat(de.losersRounds.flat())

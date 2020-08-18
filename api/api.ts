@@ -175,7 +175,7 @@ server.use(async (req, res, next) => {
           return next()
         }
         // create new tournament
-        case '/tournament': {
+        case '/tournaments': {
           if (user === -1) {
             throw new NotAuthorizedError()
           }

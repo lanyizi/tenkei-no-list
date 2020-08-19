@@ -166,9 +166,6 @@ export default Vue.extend({
       }
       this.matchEditorId = id;
     },
-    matchToVM(matchId: number): MatchVM {
-      return matchToVM(this.model, matchId, this.$t);
-    },
     roundsToTable(rounds: number[][]): ElementVM[][] {
       if (rounds.length === 0) {
         throw Error("empty rounds");
@@ -182,7 +179,7 @@ export default Vue.extend({
       const assign = (r: number, m: number, begin: number, end: number) => {
         const current = begin + (end - 1 - begin) / 2;
         const matchId = rounds[r][m];
-        matrix[current][r] = this.matchToVM(rounds[r][m]);
+        matrix[current][r] = matchToVM(this.model, rounds[r][m], this.$i18n);
         if (r == 0) {
           return;
         }

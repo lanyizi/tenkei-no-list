@@ -92,7 +92,7 @@ export default Vue.extend({
   },
   computed: {
     original(): PlayerVM[] {
-      const { p1, p2 } = matchToVM(this.tournament, this.matchId, this.$t);
+      const { p1, p2 } = matchToVM(this.tournament, this.matchId, this.$i18n);
       return [p1, p2];
     },
     merged(): PlayerVM[] {

@@ -20,6 +20,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { Tournament } from "@/models/tournament";
+import VueI18n from 'vue-i18n';
 
 export type PlayerVM = {
   id: number | null;
@@ -38,7 +39,7 @@ export type MatchVM = {
 export const matchToVM = (
   model: Tournament,
   matchId: number,
-  translator: Vue["$t"]
+  i18n: VueI18n
 ): MatchVM => {
   const match = model.matches[matchId];
   const origins = model.origins[matchId]?.filter(
@@ -51,7 +52,7 @@ export const matchToVM = (
       return "";
     }
     if (model.matches[from].loserNext === matchId) {
-      return `${translator("bracket.loserOf", { from })}`;
+      return `${i18n.t("bracket.loserOf", { from })}`;
     }
     return "";
   };

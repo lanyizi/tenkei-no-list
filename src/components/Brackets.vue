@@ -235,8 +235,7 @@ export default Vue.extend({
           // extra match
           rounds.push([finals.winnerNext]);
         }
-        const table = this.roundsToTable(this.model.winnersRounds);
-        return table.map(getRowWithKey);
+        return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
       } else if (isSingleElimination(this.model)) {
         return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
       }
@@ -252,9 +251,11 @@ export default Vue.extend({
       return [];
     },
     losersBracket(): Table | null {
-      if (isDoubleElimination(this.model)) {
-        const table = this.roundsToTable(this.model.losersRounds);
-        return table.map(getRowWithKey);
+      if (
+        isDoubleElimination(this.model) &&
+        this.model.losersRounds.length > 0
+      ) {
+        return this.roundsToTable(this.model.losersRounds).map(getRowWithKey);
       }
       return null;
     },

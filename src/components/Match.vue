@@ -20,7 +20,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { Tournament } from "@/models/tournament";
-import VueI18n from 'vue-i18n';
+import VueI18n from "vue-i18n";
 
 export type PlayerVM = {
   id: number | null;
@@ -52,6 +52,11 @@ export const matchToVM = (
       return "";
     }
     if (model.matches[from].loserNext === matchId) {
+      if (model.matches[from].winnerNext === matchId) {
+        // there are some rare cases where both winners and losers will go to
+        // the same match.
+        return "";
+      }
       return `${i18n.t("bracket.loserOf", { from })}`;
     }
     return "";

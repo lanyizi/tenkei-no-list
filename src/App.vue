@@ -7,7 +7,7 @@
             alt="Vuetify Logo"
             class="shrink mr-2"
             contain
-            :src="require('@/assets/title/T_titlelogo.png')"
+            :src="require('@/assets/main/title/T_titlelogo.png')"
             transition="scale-transition"
             width="60"
           />
@@ -89,7 +89,7 @@ export default Vue.extend({
           });
         }
       }
-      routes.push({ name: this.$t("about"), to: { name: "About" } });
+      //routes.push({ name: this.$t("about"), to: { name: "About" } });
       return routes;
     },
   },
@@ -97,13 +97,14 @@ export default Vue.extend({
 </script>
 <style scoped>
 .lanyi-titlebar {
-  background: url("~@/assets/title/T_titlebar.png");
+  background: url("~@/assets/main/title/T_titlebar.png");
 }
 .lanyi-main {
   height: 0px;
   overflow-y: auto;
+  background-size: cover;
 }
 .lanyi-main-tournament {
-  background-image: url('~@/assets/mid/M_.png');
+  background-image: url('~@/assets/main/mid/M_.png');
 }
 </style>

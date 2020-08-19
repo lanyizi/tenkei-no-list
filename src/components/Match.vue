@@ -5,7 +5,7 @@
         <v-col
           cols="10"
           class="lanyi-match-player-name px-2 py-0 ma-0 d-flex align-center"
-          :class="{ 'match-player-hint': p.id == null }"
+          :class="{ 'lanyi-match-player-hint': p.id == null }"
         >{{ p.name }}</v-col>
         <v-col
           cols="2"
@@ -130,8 +130,12 @@ export default Vue.extend({
   background: rgba(0, 0, 0, 0.6);
 }
 
+.lanyi-match-player-hint {
+  color: #aaaaaa;
+}
+
 .lanyi-match-player-score {
-  background: rgba(192, 192, 192, 0.5);
+  background: rgba(128, 128, 128, 0.5);
   color: black;
 }
 
@@ -143,6 +147,6 @@ export default Vue.extend({
   width: 17.5%;
   height: 100%;
   float: right;
-  background: rgba(96, 96, 96, 0.5);
+  background: rgba(64, 64, 64, 0.5);
 }
 </style>

@@ -26,7 +26,8 @@
     "loserOf": "第{from}组的败者",
     "playerName": "玩家名称",
     "score": "分数",
-    "winner": "胜出者"
+    "winner": "胜出者",
+    "losersBracket": "败者组"
   },
   "auth": {
     "title": "进入天岚集阵",

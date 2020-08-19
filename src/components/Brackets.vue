@@ -7,7 +7,7 @@
     >
       <MatchEditor
         v-if="matchEditorId != null"
-        :best-of="3"
+        :best-of="bo"
         :token="token"
         :tournament="model"
         :match-id="matchEditorId"
@@ -17,7 +17,7 @@
     </v-dialog>
     <table>
       <tr>
-        <th v-for="(r, i) in winnersRounds" :key="i">{{ r }}</th>
+        <th v-for="(r, i) in winnersRounds" :key="i">BO{{ r }}</th>
       </tr>
       <tr v-for="{row, rowKey} in winnersBracket" :key="rowKey">
         <td v-for="(element, i) in row" :key="element ? element.id : `~${i}`" class="match-cell">
@@ -25,11 +25,29 @@
             v-if="element != null"
             :id="getMatchElementId(element.id)"
             :value="element"
-            @click.native="onMatchClick(element.id)"
+            @click.native="bo = winnersRounds[i]; onMatchClick(element.id);"
           ></Match>
         </td>
       </tr>
     </table>
+    <template v-if="losersBracket">
+      <h2 class="pa-2 white--text">{{ $t('bracket.losersBracket') }}</h2>
+      <table>
+        <tr>
+          <th v-for="(r, i) in losersRounds" :key="i">BO{{ r }}</th>
+        </tr>
+        <tr v-for="{row, rowKey} in losersBracket" :key="rowKey">
+          <td v-for="(element, i) in row" :key="element ? element.id : `~${i}`" class="match-cell">
+            <Match
+              v-if="element != null"
+              :id="getMatchElementId(element.id)"
+              :value="element"
+              @click.native="bo = losersRounds[i]; onMatchClick(element.id);"
+            ></Match>
+          </td>
+        </tr>
+      </table>
+    </template>
   </div>
 </template>
 
@@ -59,6 +77,13 @@ const getRowWithKey = (row: ElementVM[], j: number) => {
   };
 };
 type Table = ReturnType<typeof getRowWithKey>[];
+const tableChanged = (value: Table | null, old?: Table | null) => {
+  const v = value ?? [];
+  const o = old ?? [];
+  return (
+    v.length !== o.length || v.some(({ rowKey }, i) => rowKey !== o[i].rowKey)
+  );
+};
 
 let id = 0;
 
@@ -76,7 +101,7 @@ class Connectors {
       ConnectionsDetachable: false,
       Connector: "Flowchart",
       Endpoint: "Blank",
-      PaintStyle: { stroke: "black", strokeWidth: 2 },
+      PaintStyle: { stroke: "black", strokeWidth: 3 },
     });
     return new Promise<void>((resolve) => {
       instance.ready(() => {
@@ -109,55 +134,49 @@ export default Vue.extend({
     connectors: new Connectors(),
     matchEditorId: null as number | null,
     openEditor: false,
+    bo: 3,
   }),
   props: {
     model: Object as () => WithID<Tournament>,
     token: String,
   },
   watch: {
-    winnersBracket(value: Table, old: Table) {
-      old = old ?? [];
-      const contentChanged =
-        value.length !== old.length ||
-        value.some(({ rowKey }, i) => rowKey !== old[i].rowKey);
-      if (contentChanged) {
+    winnersBracket(value: Table, old?: Table) {
+      if (tableChanged(value, old)) {
         // reset connections
         this.connectors.reset();
-        this.connectMatches(
-          this.winnersBracket.map(({ row }) =>
-            row.filter(notNull).map((r) => r.id)
-          )
-        );
+        this.connectMatches();
+      }
+    },
+    losersBracket(value: Table | null, old?: Table | null) {
+      if (tableChanged(value, old)) {
+        // reset connections
+        this.connectors.reset();
+        this.connectMatches();
       }
     },
   },
   async created() {
     await this.$nextTick();
     await this.connectors.setContainer(this.$el);
-    this.connectMatches(
-      this.winnersBracket.map(({ row }) => row.filter(notNull).map((r) => r.id))
-    );
+    this.connectMatches();
   },
   methods: {
     getMatchElementId(matchId: number) {
       return `${this.bracketId}-${matchId}`;
     },
-    connectMatches(rounds: number[][]) {
-      const helper = (x: {
-        m: number;
-        next: number | null;
-      }): x is { m: number; next: number } => {
-        return x.next !== null;
-      };
-      const data = rounds
-        .flat()
-        .map((m) => ({ m, next: this.model.matches[m].winnerNext }))
-        .filter(helper);
-      for (const { m, next } of data) {
-        this.connectors.connect({
-          source: this.getMatchElementId(m),
-          target: this.getMatchElementId(next),
-        });
+    connectMatches() {
+      const matchVMs = this.winnersBracket
+        .concat(this.losersBracket ?? [])
+        .map(({ row }) => row.filter(notNull))
+        .flat();
+      for (const { id, next } of matchVMs) {
+        if (next !== null) {
+          this.connectors.connect({
+            source: this.getMatchElementId(id),
+            target: this.getMatchElementId(next),
+          });
+        }
       }
     },
     onMatchClick(id: number) {
@@ -188,10 +207,10 @@ export default Vue.extend({
           .filter(([n]) => this.model.matches[n].winnerNext == matchId)
           .map(([, i]) => i);
 
-        if (previousIndices.length > 0) {
+        if (previousIndices.length === 1) {
+          assign(r - 1, previousIndices[0], begin, end);
+        } else if (previousIndices.length === 2) {
           assign(r - 1, previousIndices[0], begin, current);
-        }
-        if (previousIndices.length > 1) {
           assign(r - 1, previousIndices[1], current + 1, end);
         }
       };
@@ -201,52 +220,43 @@ export default Vue.extend({
     },
   },
   computed: {
-    winnersRounds(): string[] {
-      if (this.winnersBracket.length > 0) {
-        return nCopies(this.winnersBracket[0].row.length, () => "BO3");
-      }
-      return [];
+    winnersRounds(): number[] {
+      const bo = nCopies(this.winnersBracket[0].row.length, () => 3);
+      bo[bo.length - 1] = 5;
+      bo[bo.length - 2] = 5;
+      return bo;
     },
     winnersBracket(): Table {
       if (isDoubleElimination(this.model)) {
-        const winners = this.model.winnersRounds;
-        const rounds = winners.slice(0, winners.length - 1);
-
-        const finalsVM = this.matchToVM(winners.slice(-1)[0][0]);
-        const table = this.roundsToTable(rounds);
-        const finalsRow = table.findIndex((row) => row.slice(-1)[0] !== null);
-
-        table.forEach((row, j) => {
-          // finals
-          const extraColumns = [j == finalsRow ? finalsVM : null];
-          if (finalsVM.next !== null) {
-            // extra match
-            const element: ElementVM =
-              j == finalsRow ? this.matchToVM(finalsVM.next) : null;
-            extraColumns.push(element);
-          }
-          row.push(...extraColumns);
-        });
-
+        const rounds = this.model.winnersRounds.slice();
+        const finalsId = rounds[rounds.length - 1][0];
+        const finals = this.model.matches[finalsId];
+        if (finals.winnerNext !== null) {
+          // extra match
+          rounds.push([finals.winnerNext]);
+        }
+        const table = this.roundsToTable(this.model.winnersRounds);
         return table.map(getRowWithKey);
       } else if (isSingleElimination(this.model)) {
         return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
       }
       return [];
     },
-    // can the currently selected match's winner be changed?
-    winnerEditable(): boolean {
-      if (this.matchEditorId === null) {
-        return false;
+    losersRounds(): number[] {
+      if (this.losersBracket != null) {
+        const bo = nCopies(this.losersBracket[0].row.length, () => 1);
+        bo[bo.length - 1] = 5;
+        bo[bo.length - 2] = 3;
+        return bo;
       }
-      const matches = this.model.matches;
-      const match = matches[this.matchEditorId];
-      const nexts = [match.winnerNext, match.loserNext];
-      if (nexts.some((x) => x !== null && matches[x].winner !== null)) {
-        // some of next match finished, this match cannot be edited
-        return false;
+      return [];
+    },
+    losersBracket(): Table | null {
+      if (isDoubleElimination(this.model)) {
+        const table = this.roundsToTable(this.model.losersRounds);
+        return table.map(getRowWithKey);
       }
-      return true;
+      return null;
     },
   },
 });

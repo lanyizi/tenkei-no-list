@@ -1,5 +1,5 @@
 import { Match, Tournament, winMatch } from ".";
-import { nCopies, iota, FromDefinition, getTypeChecker } from '@/utils';
+import { nCopies, FromDefinition, getTypeChecker } from '@/utils';
 import { getDesc, getHelpers, MatchDesc, Label } from './desc';
 import { getOrigins, isRounds } from './tournament';
 import {

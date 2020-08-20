@@ -82,7 +82,7 @@ export default Vue.extend({
     removePlayer(index: number) {
       this.players = this.players.filter((_, i) => i !== index);
     },
-    update<K extends keyof Model>(updated: Partial<Model>) {
+    update<K extends keyof Model>(updated: Pick<Model, K>) {
       this.$emit("input", { ...this.value, ...updated });
     },
   },

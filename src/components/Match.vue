@@ -1,16 +1,20 @@
 <template>
   <div class="lanyi-match">
-    <div class="lanyi-match-players">
-      <v-row class="lanyi-match-player" v-for="(p, i) in players" :key="i">
+    <div class="lanyi-match-players" :class="{ 'lanyi-match-has-winner': hasWinner }">
+      <v-row
+        v-for="(p, i) in players"
+        :key="i"
+        class="lanyi-match-player"
+        :class="{ 'lanyi-match-player-winner': p.isWinner }"
+      >
         <v-col
           cols="10"
-          class="lanyi-match-player-name px-2 py-0 ma-0 d-flex align-center"
+          class="lanyi-match-player-name px-2 py-0 ma-0 d-flex justify-center align-center"
           :class="{ 'lanyi-match-player-hint': p.id == null }"
         >{{ p.name }}</v-col>
         <v-col
           cols="2"
           class="lanyi-match-player-score pa-0 ma-0 d-flex justify-center align-center"
-          :class="{ 'lanyi-match-player-winner': p.isWinner }"
         >{{ p.score }}</v-col>
       </v-row>
     </div>
@@ -93,6 +97,9 @@ export default Vue.extend({
     players(): PlayerVM[] {
       return [this.value.p1, this.value.p2];
     },
+    hasWinner(): boolean {
+      return this.players.some((p) => p.isWinner);
+    },
   },
 });
 </script>
@@ -135,6 +142,14 @@ export default Vue.extend({
   background: rgba(0, 0, 0, 0.6);
 }
 
+.lanyi-match-has-winner .lanyi-match-player-name {
+  background: black;
+}
+
+.lanyi-match-has-winner .lanyi-match-player-winner .lanyi-match-player-name {
+  background: rgb(44, 117, 190);
+}
+
 .lanyi-match-player-hint {
   color: #aaaaaa;
 }
@@ -144,7 +159,7 @@ export default Vue.extend({
   color: black;
 }
 
-.lanyi-match-player-score.lanyi-match-player-winner {
+.lanyi-match-player-winner .lanyi-match-player-score {
   background: white;
 }
 

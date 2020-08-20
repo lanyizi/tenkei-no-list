@@ -53,7 +53,11 @@ import { PlayerNameEdit, ScoreEdit, WinnerEdit } from "@/models/changes";
 import isEqual from "lodash/isEqual";
 import { notNull } from "@/utils";
 import { request } from "@/request";
-import { Tournament } from "@/models/tournament";
+import {
+  Tournament,
+  isDoubleElimination,
+  getKeyInNext,
+} from "@/models/tournament";
 import { WithID } from "@/models/validations";
 
 const createEditModel = (): {
@@ -61,13 +65,19 @@ const createEditModel = (): {
   p2: PlayerNameEdit | null;
   scores: ScoreEdit | null;
   winner: WinnerEdit | null;
+  // special edit for double elimination finals:
+  // No extra match: ScoreEdit - Winner has one point advantage
+  // With extra match - If winner is from winner's brakcet, winner auto wins
+  // the extra match
+  deFinals: ScoreEdit | WinnerEdit | null;
 } => ({
   p1: null,
   p2: null,
   scores: null,
   winner: null,
+  deFinals: null,
 });
-const keys = ["p1", "p2", "scores", "winner"] as const;
+const keys = ["p1", "p2", "scores", "winner", "deFinals"] as const;
 
 export default Vue.extend({
   data: () => ({
@@ -176,6 +186,9 @@ export default Vue.extend({
       }
     },
     editWinner(index: number, isWinner: boolean) {
+      // reset deFinals
+      this.edited.deFinals = null;
+
       if (!this.edited.winner) {
         const current = this.original.find((p) => p.isWinner)?.id ?? null;
         this.edited.winner = this.edited.winner ?? {
@@ -195,6 +208,54 @@ export default Vue.extend({
       if (this.edited.winner.previous === this.edited.winner.edited) {
         this.edited.winner = null;
         return;
+      }
+
+      // handle finals of double elimination
+      if (isDoubleElimination(this.tournament)) {
+        const [
+          [semiFinalsId],
+          [finalsId],
+        ] = this.tournament.winnersRounds.slice(-2);
+        const finals = this.tournament.matches[finalsId];
+        const semiFinals = this.tournament.matches[semiFinalsId];
+        if (finals.winnerNext !== null) {
+          // has extra match
+          // check if the current winner being set is from final match
+          if (this.matchId !== finalsId) {
+            return;
+          }
+
+          // check if winner comes from the winner bracket
+          if (semiFinals.winner === this.edited.winner.edited) {
+            // if winner's bracket winner has won the finals, then extra match
+            // doesn't have to be played, the winner auto wins the extra match
+            this.edited.deFinals = {
+              type: "winnerEdit",
+              matchId: finals.winnerNext,
+              previous: this.tournament.matches[finals.winnerNext].winner,
+              edited: this.edited.winner.edited,
+            };
+          }
+        } else {
+          // no extra match, winner bracket winner has 1 point advantage
+          // check if the current winner being set is from semifinals
+          if (this.matchId !== semiFinalsId) {
+            return;
+          }
+          // if yes, next match will have one point advantage for the winner.
+          // try to predict the winner's key:
+          const key = getKeyInNext(this.tournament, this.matchId, finalsId);
+          const index = key === "p1" ? 0 : 1;
+          const edited = [finals.p1Score, finals.p2Score];
+          // assign the one point advantage
+          edited[index] = edited[index] || 1;
+          this.edited.deFinals = {
+            type: "scoreEdit",
+            matchId: finalsId,
+            previous: [finals.p1Score, finals.p2Score],
+            edited,
+          };
+        }
       }
     },
     async applyEdits() {

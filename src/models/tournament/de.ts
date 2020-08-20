@@ -179,6 +179,15 @@ export const createDoubleElimination = (
   autoPlay(de.losersRounds, getLosersProceeder(de.winnersRounds));
   de.losersRounds = roundsFilterer(de.losersRounds);
 
+  if (hasExtraMatch) {
+    // extra match
+    const extraMatchId = de.matches.length;
+    de.matches.push(createMatch());
+    const [[fianlsId]] = de.winnersRounds.slice(-1);
+    de.matches[fianlsId].winnerNext = extraMatchId;
+    de.matches[fianlsId].loserNext = extraMatchId;
+  }
+
   de.origins = getOrigins(
     de,
     de.winnersRounds.flat().concat(de.losersRounds.flat())

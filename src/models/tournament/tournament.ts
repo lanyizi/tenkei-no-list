@@ -46,39 +46,51 @@ export const isTournament = (x: SetupLike): x is Tournament => {
   return checkTournamentSpecific(x);
 }
 
+export const getKeyInNext = (
+  tournament: Tournament,
+  currentMatch: number,
+  nextMatch: number
+) => {
+  const index = tournament.origins[nextMatch].indexOf(currentMatch);
+  if (index === 0) {
+    return 'p1';
+  }
+  else if (index === 1) {
+    return 'p2';
+  }
+  throw Error('Invalid origin index');
+}
+
 export const winMatch = (
   tournament: Tournament,
   matchId: number,
   winner: 'p1' | 'p2'
 ) => {
-  const distribute = (target: Match, player: number) => {
-    if (target.p1 === null) {
-      target.p1 = player;
+  const distribute = (targetId: number, player: number) => {
+    const target = tournament.matches[targetId];
+    const key = getKeyInNext(tournament, matchId, targetId);
+    if (target[key] !== null) {
+      throw Error('Player slot already taken');
     }
-    else if (target.p2 === null) {
-      target.p2 = player;
-    }
-    else {
-      throw Error('more than two players joining same match');
-    }
+    target[key] = player;
   }
 
   const match = tournament.matches[matchId];
   if (match.p1 === null || match.p2 === null) {
-    throw Error('cannot win with null players');
+    throw Error('Cannot win with null players');
   }
 
   match.winner = match[winner];
   if (match.winner === null) {
-    throw Error('cannot win with null players');
+    throw Error('Cannot win with null players');
   }
 
   const loser = winner === 'p1' ? match.p2 : match.p1;
   if (match.winnerNext !== null) {
-    distribute(tournament.matches[match.winnerNext], match.winner);
+    distribute(match.winnerNext, match.winner);
   }
   if (match.loserNext !== null) {
-    distribute(tournament.matches[match.loserNext], loser);
+    distribute(match.loserNext, loser);
   }
 }
 

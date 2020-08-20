@@ -42,9 +42,9 @@ export const matchToVM = (
   i18n: VueI18n
 ): MatchVM => {
   const match = model.matches[matchId];
-  const origins = model.origins[matchId]?.filter(
-    (m) => model.matches[m].winner === null
-  );
+  const origins = model.origins[matchId]
+    ?.filter((m) => model.matches[m].winner === null)
+    ?.reverse(); // reverse it so pop() now is actually popping from front
   // get hint of who might come to this match.
   // useful for losers' bracket
   const maybeHint = (from?: number) => {

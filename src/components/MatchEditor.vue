@@ -212,6 +212,10 @@ export default Vue.extend({
 
       // handle finals of double elimination
       if (isDoubleElimination(this.tournament)) {
+        if (this.edited.winner.edited === null) {
+          // do not create this.edited.deFinals if winner is null
+          return;
+        }
         const [
           [semiFinalsId],
           [finalsId],
@@ -237,22 +241,28 @@ export default Vue.extend({
             };
           }
         } else {
+          const [[loserFinalsId]] = this.tournament.losersRounds.slice(-1);
           // no extra match, winner bracket winner has 1 point advantage
           // check if the current winner being set is from semifinals
-          if (this.matchId !== semiFinalsId) {
+          if (![semiFinalsId, loserFinalsId].includes(this.matchId)) {
             return;
           }
           // if yes, next match will have one point advantage for the winner.
           // try to predict the winner's key:
-          const key = getKeyInNext(this.tournament, this.matchId, finalsId);
+          const key = getKeyInNext(this.tournament, semiFinalsId, finalsId);
           const index = key === "p1" ? 0 : 1;
-          const edited = [finals.p1Score, finals.p2Score];
+          const previous = [finals.p1Score, finals.p2Score];
+          const edited = previous.slice();
           // assign the one point advantage
           edited[index] = edited[index] || 1;
+          if (isEqual(previous, edited)) {
+            // if the point advantage is already assigned, then do not edit
+            return;
+          }
           this.edited.deFinals = {
             type: "scoreEdit",
             matchId: finalsId,
-            previous: [finals.p1Score, finals.p2Score],
+            previous,
             edited,
           };
         }

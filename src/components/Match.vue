@@ -140,6 +140,7 @@ export default Vue.extend({
   overflow: hidden;
   white-space: nowrap;
   background: rgba(0, 0, 0, 0.6);
+  background: radial-gradient(ellipse, rgba(0,0,0,0.416) 0%, rgba(0,0,0,0.686) 100%);
 }
 
 .lanyi-match-has-winner .lanyi-match-player-name {
@@ -147,7 +148,7 @@ export default Vue.extend({
 }
 
 .lanyi-match-has-winner .lanyi-match-player-winner .lanyi-match-player-name {
-  background: rgb(44, 117, 190);
+  background: rgb(73, 157, 240);
 }
 
 .lanyi-match-player-hint {
@@ -155,7 +156,7 @@ export default Vue.extend({
 }
 
 .lanyi-match-player-score {
-  background: rgba(128, 128, 128, 0.5);
+  background: rgb(136, 136, 136);
   color: black;
 }
 
@@ -168,5 +169,6 @@ export default Vue.extend({
   height: 100%;
   float: right;
   background: rgba(64, 64, 64, 0.5);
+  background: url('~@/assets/main/mid/M_player/P_groupbar.png') 100% 100%;
 }
 </style>

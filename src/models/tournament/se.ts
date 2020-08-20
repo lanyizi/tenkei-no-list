@@ -1,8 +1,8 @@
 import {
-  Match,
   Tournament,
   getOrigins,
-  isRounds
+  isRounds,
+  createMatch
 } from "./tournament";
 import { iota, FromDefinition, getTypeChecker } from '@/utils';
 import {
@@ -65,8 +65,8 @@ export const createSingleElimination = (
   const numberOfRound1Matches = se.players.length - powerOfTwo
   const round1IDs = iota(numberOfRound1Matches);
   se.matches.push(...round1IDs.map(i => {
-    const next = round1IDs.length + Math.floor(i / 2)
-    return new Match(next)
+    const winnerNext = round1IDs.length + Math.floor(i / 2)
+    return { ...createMatch(), winnerNext }
   }))
   se.winnersRounds.push(round1IDs)
 
@@ -74,10 +74,10 @@ export const createSingleElimination = (
     const matchIDs = iota(n).map(i => i + se.matches.length);
     const nextRoundFirstID = se.matches.length + n;
     se.matches.push(...iota(n).map(i => {
-      const next = n == 1
+      const winnerNext = n == 1
         ? null
         : nextRoundFirstID + Math.floor(i / 2)
-      return new Match(next)
+      return { ...createMatch(), winnerNext }
     }))
     se.winnersRounds.push(matchIDs)
   }
@@ -115,7 +115,7 @@ export const createSingleElimination = (
     se.thirdPlaceMatch = null;
   }
   else {
-    se.matches.push(new Match(null));
+    se.matches.push(createMatch());
     se.thirdPlaceMatch = se.matches.length - 1;
     const semifinals = se.winnersRounds.slice(-2)[0];
     if (semifinals.length !== 2) {

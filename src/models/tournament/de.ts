@@ -1,7 +1,7 @@
-import { Match, Tournament, winMatch } from ".";
+import { Tournament, winMatch } from ".";
 import { nCopies, FromDefinition, getTypeChecker } from '@/utils';
 import { getDesc, getHelpers, MatchDesc, Label } from './desc';
-import { getOrigins, isRounds } from './tournament';
+import { getOrigins, isRounds, createMatch } from './tournament';
 import {
   Information,
   isDoubleEliminationSettings
@@ -38,7 +38,7 @@ export const createDoubleElimination = (
       referees: information.referees.slice()
     },
     players: players.slice(),
-    matches: nCopies(127, () => new Match(null)),
+    matches: nCopies(127, () => createMatch()),
     winnersRounds: nCopies(7, () => []),
     losersRounds: nCopies(10, () => []),
     origins: {}

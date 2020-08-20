@@ -2,9 +2,8 @@ import { SingleElimination, createSingleElimination } from './se';
 import { DoubleElimination, createDoubleElimination } from './de';
 import { Setup } from '@/models/setup';
 
-export type { Tournament } from './tournament';
-export { isTournament } from './tournament';
-export { Match, winMatch, isMatch } from './tournament';
+export type { Tournament, Match } from './tournament';
+export { isTournament, winMatch, isMatch, getKeyInNext } from './tournament';
 export type { SingleElimination } from './se';
 export { isSingleElimination } from './se';
 export type { DoubleElimination } from './de';

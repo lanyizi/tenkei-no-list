@@ -1,42 +1,34 @@
 import { SetupLike } from '@/models/setup'
-import { has, isArray, FromDefinition, getTypeChecker } from '@/utils'
+import {
+  isArray,
+  FromDefinition,
+  getTypeChecker,
+  isNumberOrNull
+} from '@/utils'
 import isObject from 'lodash/isObject'
 import isNumber from 'lodash/isNumber'
 
-export class Match {
-  constructor(winnerNext: number | null) {
-    this.winnerNext = winnerNext
-  }
-
-  winnerNext: number | null
-  loserNext: number | null = null
-  p1: number | null = null
-  p2: number | null = null
-  p1Score: number | null = null
-  p2Score: number | null = null
-  winner: number | null = null
-}
-export const isMatch = (match: unknown): match is Match => {
-  const keys: (keyof Match)[] = [
-    'p1',
-    'p2',
-    'p1Score',
-    'p2Score',
-    'winner',
-    'winnerNext',
-    'loserNext'
-  ];
-
-  if (!isObject(match)) {
-    return false;
-  }
-
-  return keys.every(<K extends keyof Match>(k: K) => {
-    if (has(match, k)) {
-      return isNumber(match[k]) || match[k] === null;
-    }
-    return false;
-  });
+const matchDefinition = {
+  winnerNext: isNumberOrNull,
+  loserNext: isNumberOrNull,
+  p1: isNumberOrNull,
+  p2: isNumberOrNull,
+  p1Score: isNumberOrNull,
+  p2Score: isNumberOrNull,
+  winner: isNumberOrNull
+};
+export type Match = FromDefinition<typeof matchDefinition>;
+export const isMatch = getTypeChecker(matchDefinition);
+export const createMatch = (): Match => {
+  return {
+    winnerNext: null,
+    loserNext: null,
+    p1: null,
+    p2: null,
+    p1Score: null,
+    p2Score: null,
+    winner: null
+  };
 }
 
 const tournamentSpecificDefinition = {

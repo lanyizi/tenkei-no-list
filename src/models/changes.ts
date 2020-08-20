@@ -1,11 +1,8 @@
-import { isArray, FromDefinition, getTypeChecker } from '@/utils'
+import { isArray, FromDefinition, getTypeChecker, isNumberOrNull } from '@/utils'
 import isNumber from 'lodash/isNumber'
 import isString from 'lodash/isString'
-import isNull from 'lodash/isNull'
 
 const isUnknown = (x: unknown): x is unknown => true // eslint-disable-line
-const isNumberOrNull = (x: unknown): x is number | null =>
-  isNumber(x) || isNull(x)
 const isArrayOfNumberOfNull = (x: unknown): x is (number | null)[] =>
   isArray(x, isNumberOrNull)
 

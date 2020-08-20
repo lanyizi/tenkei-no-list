@@ -1,5 +1,7 @@
 import lodashHas from 'lodash/has';
 import isObject from 'lodash/isObject';
+import isNumber from 'lodash/isNumber';
+import isNull from 'lodash/isNull';
 
 export const nCopies = <T>(n: number, generator: (i: number) => T) => {
   return [...Array(n)].map(generator);
@@ -10,6 +12,9 @@ export const iota = (n: number) => {
 }
 
 export const notNull = <T>(x: T | null): x is T => x != null;
+
+export const isNumberOrNull = (x: unknown): x is number | null =>
+  isNumber(x) || isNull(x)
 
 export const has = <K extends PropertyKey>(
   object: object,

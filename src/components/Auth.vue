@@ -20,6 +20,7 @@
               :label="$t('auth.password')"
               v-model="password"
             />
+            <span class="text-body-1">{{ $t('auth.localStorageWarning') }}</span>
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -37,6 +38,8 @@ import { request } from "@/request";
 import { has } from "@/utils";
 import isObject from "lodash/isObject";
 
+const localStorageKey = "token";
+
 export default Vue.extend({
   props: {
     value: Number,
@@ -46,9 +49,14 @@ export default Vue.extend({
     username: "",
     password: "",
   }),
+  mounted() {
+    const stored = localStorage.getItem(localStorageKey);
+    if (stored) {
+      this.tokenLogIn(stored);
+    }
+  },
   methods: {
-    async logIn() {
-      const token = `${btoa(this.username)} ${btoa(this.password)}`;
+    async tokenLogIn(token: string) {
       const json = await request("GET", "/~", token);
       if (!isObject(json) || !has(json, "user")) {
         return;
@@ -56,9 +64,17 @@ export default Vue.extend({
       const user = parseInt(`${json.user}`) ?? -1;
       this.$emit("input", user);
       if (user !== -1) {
+        this.username = atob(token.split(" ")[0]);
         this.$emit("token", token);
         this.openDialog = false;
+        localStorage.setItem(localStorageKey, token);
+      } else {
+        localStorage.clearItem(localStorageKey);
       }
+    },
+    logIn() {
+      const token = `${btoa(this.username)} ${btoa(this.password)}`;
+      return this.tokenLogIn(token);
     },
     logOut() {
       this.$emit("input", -1);

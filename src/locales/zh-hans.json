@@ -39,6 +39,7 @@
     "login": "登录",
     "logout": "登出",
     "logoutUser": "注销{username}",
+    "localStorageWarning": "成功登录后，密码将会以明文保存在浏览器本地存储中，以便今后自动登录",
     "addReferee": "添加赛务",
     "manageReferee": "管理赛务"
   },

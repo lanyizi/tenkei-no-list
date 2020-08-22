@@ -1,5 +1,5 @@
 <template>
-  <div class="brackets">
+  <div class="lanyi-brackets" sticky-container>
     <v-dialog
       max-width="600"
       :value="matchEditorId != null"
@@ -15,31 +15,33 @@
         @close="matchEditorId = null"
       ></MatchEditor>
     </v-dialog>
-    <table v-for="({headers, cells}, i) in brackets" :key="i">
-      <tr>
-        <th v-for="({cellClasses, classes, content}, i) in headers" :key="i" :class="cellClasses">
-          <div v-sticky sticky-offset="stickyHeaderOffsets" class="lanyi-header-wrapper">
-            <div :class="classes">{{ content }}</div>
-          </div>
-        </th>
-      </tr>
-      <tr v-for="{row, rowKey} in cells" :key="rowKey">
-        <td
-          v-for="({cellClasses, classes, key, content}, i) in row"
-          :key="key"
-          :class="cellClasses"
-        >
-          <Match
-            v-if="content != null"
-            :id="getMatchElementId(content.id)"
-            :value="content"
-            @click.native="bo = winnersRounds[i]; onMatchClick(content.id);"
-            :class="classes"
-          ></Match>
-          <div v-else :class="classes" />
-        </td>
-      </tr>
-    </table>
+    <div ref="jsplumb-container" style="position: relative;">
+      <table v-for="({headers, cells}, i) in brackets" :key="i">
+        <tr>
+          <th v-for="({cellClasses, classes, content}, i) in headers" :key="i" :class="cellClasses">
+            <div v-sticky sticky-offset="stickyHeaderOffsets" class="lanyi-header-wrapper">
+              <div :class="classes">{{ content }}</div>
+            </div>
+          </th>
+        </tr>
+        <tr v-for="{row, rowKey} in cells" :key="rowKey">
+          <td
+            v-for="({cellClasses, classes, key, content}, i) in row"
+            :key="key"
+            :class="cellClasses"
+          >
+            <Match
+              v-if="content != null"
+              :id="getMatchElementId(content.id)"
+              :value="content"
+              @click.native="bo = winnersRounds[i]; onMatchClick(content.id);"
+              :class="classes"
+            ></Match>
+            <div v-else :class="classes" />
+          </td>
+        </tr>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -176,7 +178,11 @@ export default Vue.extend({
     },
   },
   async mounted() {
-    await this.connectors.setContainer(this.$el);
+    const container = this.$refs["jsplumb-container"];
+    if (!(container instanceof Element)) {
+      throw Error("Invlid jsplumb container ref");
+    }
+    await this.connectors.setContainer(container);
     this.connectMatches();
   },
   methods: {
@@ -281,7 +287,7 @@ export default Vue.extend({
 
       const bestOfs = nCopies(rounds, () => "BO3");
       const mainHeaders = bestOfs.map(
-        (content, i): HeaderVM => ({
+        (content): HeaderVM => ({
           cellClasses: ["lanyi-header-cell"],
           classes: ["lanyi-bracket-round"],
           content,
@@ -367,15 +373,17 @@ export default Vue.extend({
 });
 </script>
 <style scoped>
-.brackets {
-  position: relative;
+.lanyi-brackets {
+  width: 100%;
+  overflow-x: auto;
 }
 
 table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   white-space: nowrap;
 }
 

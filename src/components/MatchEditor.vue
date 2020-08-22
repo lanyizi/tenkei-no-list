@@ -249,7 +249,12 @@ export default Vue.extend({
           }
           // if yes, next match will have one point advantage for the winner.
           // try to predict the winner's key:
-          const key = getKeyInNext(this.tournament, semiFinalsId, finalsId);
+          const key = getKeyInNext(
+            this.tournament,
+            semiFinalsId,
+            finalsId,
+            true
+          );
           const index = key === "p1" ? 0 : 1;
           const previous = [finals.p1Score, finals.p2Score];
           const edited = previous.slice();

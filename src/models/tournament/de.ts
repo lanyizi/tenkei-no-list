@@ -1,5 +1,5 @@
 import { Tournament, winMatch } from ".";
-import { nCopies, FromDefinition, getTypeChecker } from '@/utils';
+import { nCopies, FromDefinition, getTypeChecker, iota } from '@/utils';
 import { getDesc, getHelpers, MatchDesc, Label } from './desc';
 import { getOrigins, isRounds, createMatch } from './tournament';
 import {
@@ -122,6 +122,7 @@ export const createDoubleElimination = (
 
   type Proceeder = (id: number, winner: 'p1' | 'p2') => void;
   const getLosersProceeder = (filteredWinners: number[][]): Proceeder => {
+    // set a temporary tournament origins
     const losersOrigins = getOrigins(de, filteredWinners.flat());
     return (id, winner) => {
       const match = de.matches[id];
@@ -172,8 +173,12 @@ export const createDoubleElimination = (
       return [match.p1, match.p2].every(p => !isPseudoPlayer(p));
     })).filter(round => round.length > 0)
   };
+
   // let real players automatically defeat pseudo players
   // and then remove matches contaning pseudo players
+
+  // setup a temporary origins to be used by winMatch
+  de.origins = getOrigins(de, iota(de.matches.length));
   autoPlay(de.winnersRounds, (id, winner) => winMatch(de, id, winner));
   de.winnersRounds = roundsFilterer(de.winnersRounds);
   autoPlay(de.losersRounds, getLosersProceeder(de.winnersRounds));

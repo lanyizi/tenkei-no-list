@@ -49,11 +49,21 @@ export const isTournament = (x: SetupLike): x is Tournament => {
 export const getKeyInNext = (
   tournament: Tournament,
   currentMatch: number,
-  nextMatch: number
+  nextMatch: number,
+  isWinner?: boolean // used when currentMatch is the only origin of nextMatch
 ) => {
-  const index = tournament.origins[nextMatch].indexOf(currentMatch);
+  const origins = tournament.origins[nextMatch];
+  const index = origins.indexOf(currentMatch);
   if (index === 0) {
-    return 'p1';
+    if (origins[0] !== origins[1]) {
+      return 'p1';
+    }
+    // if currentMatch is the only origin of nextMatch
+    switch (isWinner) {
+      case undefined: throw Error('isWinner not specified');
+      case true: return 'p1';
+      case false: return 'p2';
+    }
   }
   else if (index === 1) {
     return 'p2';
@@ -66,16 +76,17 @@ export const winMatch = (
   matchId: number,
   winner: 'p1' | 'p2'
 ) => {
+  const match = tournament.matches[matchId];
   const distribute = (targetId: number, player: number) => {
     const target = tournament.matches[targetId];
-    const key = getKeyInNext(tournament, matchId, targetId);
+    const isWinner = match.winner === player;
+    const key = getKeyInNext(tournament, matchId, targetId, isWinner);
     if (target[key] !== null) {
       throw Error('Player slot already taken');
     }
     target[key] = player;
   }
 
-  const match = tournament.matches[matchId];
   if (match.p1 === null || match.p2 === null) {
     throw Error('Cannot win with null players');
   }

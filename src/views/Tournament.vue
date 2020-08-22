@@ -6,15 +6,15 @@
       <div
         v-if="processed.type === 'previewError'"
       >{{ $t('bracket.cannotDisplay', { why: processed.why }) }}</div>
-      <div v-else class="lanyi-brackets-container">
+      <div v-else sticky-container class="lanyi-brackets-container" :style="containerHeight">
         <Brackets
           :token="token"
           :tournament-id="id"
           :model="processed.data"
           @refresh-requested="loadTournament"
         />
+        <Information read-only :value="model.information" />
       </div>
-      <Information read-only :value="model.information" />
     </div>
   </div>
 </template>
@@ -28,6 +28,7 @@ import Information from "@/components/Information.vue";
 import { TranslateResult } from "vue-i18n";
 import { loadTournament } from "@/request";
 import { WithID } from "@/models/validations";
+import { headerHeight } from "@/App.vue";
 
 type Processed =
   | {
@@ -87,6 +88,9 @@ export default Vue.extend({
     },
   },
   computed: {
+    containerHeight(): Record<string, string> {
+      return { height: `calc(100vh - ${headerHeight}px)` };
+    },
     processed(): Processed {
       if (isTournament(this.model)) {
         return { type: "model", data: this.model };

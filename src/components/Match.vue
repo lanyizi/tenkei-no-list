@@ -118,8 +118,6 @@ export default Vue.extend({
 }
 
 .lanyi-match {
-  width: 250px;
-  height: 60px;
   box-shadow: inset 1.5px 1.5px black, inset -1.5px -1.5px black;
   position: relative;
 }

@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="secondary" height="60" class="lanyi-titlebar">
+    <v-app-bar app color="secondary" :height="headerHeight" class="lanyi-titlebar">
       <div class="d-flex align-center">
         <router-link to="/">
           <v-img
@@ -9,7 +9,7 @@
             contain
             :src="require('@/assets/main/title/T_titlelogo.png')"
             transition="scale-transition"
-            width="60"
+            :height="headerHeight"
           />
         </router-link>
         <v-btn
@@ -36,7 +36,7 @@
       </div>
     </v-app-bar>
 
-    <v-main class="lanyi-main" :class="mainClass">
+    <v-main class="lanyi-main" :class="mainClass" :style="backgroundSizeStyle">
       <router-view :user="user" :token="token" />
     </v-main>
   </v-app>
@@ -55,6 +55,8 @@ type RouterData = {
   hideOnPhone?: false;
 };
 
+export const headerHeight = 72;
+
 export default Vue.extend({
   components: {
     Auth,
@@ -64,6 +66,12 @@ export default Vue.extend({
     token: "",
   }),
   computed: {
+    headerHeight(): number {
+      return headerHeight;
+    },
+    backgroundSizeStyle(): Record<string, string> {
+      return { backgroundPosition: `0 ${this.headerHeight}px` }
+    },
     mainClass(): string {
       return `lanyi-main-${(this.$route.name || "default").toLowerCase()}`;
     },
@@ -103,6 +111,7 @@ export default Vue.extend({
   height: 0px;
   overflow-y: auto;
   background-size: cover;
+  background-position: 0 72px;
 }
 .lanyi-main-tournament {
   background-image: url('~@/assets/main/mid/M_.png');

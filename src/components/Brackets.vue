@@ -15,39 +15,31 @@
         @close="matchEditorId = null"
       ></MatchEditor>
     </v-dialog>
-    <table>
+    <table v-for="({headers, cells}, i) in brackets" :key="i">
       <tr>
-        <th v-for="(r, i) in winnersRounds" :key="i">BO{{ r }}</th>
+        <th v-for="({cellClasses, classes, content}, i) in headers" :key="i" :class="cellClasses">
+          <div v-sticky sticky-offset="stickyHeaderOffsets" class="lanyi-header-wrapper">
+            <div :class="classes">{{ content }}</div>
+          </div>
+        </th>
       </tr>
-      <tr v-for="{row, rowKey} in winnersBracket" :key="rowKey">
-        <td v-for="(element, i) in row" :key="element ? element.id : `~${i}`" class="match-cell">
+      <tr v-for="{row, rowKey} in cells" :key="rowKey">
+        <td
+          v-for="({cellClasses, classes, key, content}, i) in row"
+          :key="key"
+          :class="cellClasses"
+        >
           <Match
-            v-if="element != null"
-            :id="getMatchElementId(element.id)"
-            :value="element"
-            @click.native="bo = winnersRounds[i]; onMatchClick(element.id);"
+            v-if="content != null"
+            :id="getMatchElementId(content.id)"
+            :value="content"
+            @click.native="bo = winnersRounds[i]; onMatchClick(content.id);"
+            :class="classes"
           ></Match>
+          <div v-else :class="classes" />
         </td>
       </tr>
     </table>
-    <template v-if="losersBracket">
-      <h2 class="pa-2 white--text">{{ $t('bracket.losersBracket') }}</h2>
-      <table>
-        <tr>
-          <th v-for="(r, i) in losersRounds" :key="i">BO{{ r }}</th>
-        </tr>
-        <tr v-for="{row, rowKey} in losersBracket" :key="rowKey">
-          <td v-for="(element, i) in row" :key="element ? element.id : `~${i}`" class="match-cell">
-            <Match
-              v-if="element != null"
-              :id="getMatchElementId(element.id)"
-              :value="element"
-              @click.native="bo = losersRounds[i]; onMatchClick(element.id);"
-            ></Match>
-          </td>
-        </tr>
-      </table>
-    </template>
   </div>
 </template>
 
@@ -60,9 +52,12 @@ import {
   isDoubleElimination,
   isSingleElimination,
 } from "@/models/tournament";
-import { nCopies, notNull } from "@/utils";
+import { nCopies, notNull, iota } from "@/utils";
 import jsPlumb, { jsPlumbInstance } from "jsplumb";
 import { WithID } from "@/models/validations";
+import { headerHeight } from "@/App.vue";
+import isNull from "lodash/isNull";
+import VueI18n from "vue-i18n";
 
 type ElementVM = MatchVM | null;
 
@@ -83,6 +78,28 @@ const tableChanged = (value: Table | null, old?: Table | null) => {
   return (
     v.length !== o.length || v.some(({ rowKey }, i) => rowKey !== o[i].rowKey)
   );
+};
+
+type CellVMBase = {
+  cellClasses: string[];
+  classes: string[];
+};
+
+type HeaderVM = CellVMBase & { content: VueI18n.TranslateResult };
+
+type CellVM = CellVMBase & {
+  key: string;
+  content: ElementVM;
+};
+
+type BracketRowVM = {
+  row: CellVM[];
+  rowKey: string;
+};
+
+type BracketVM = {
+  headers: HeaderVM[];
+  cells: BracketRowVM[];
 };
 
 let id = 0;
@@ -143,21 +160,22 @@ export default Vue.extend({
   watch: {
     winnersBracket(value: Table, old?: Table) {
       if (tableChanged(value, old)) {
-        // reset connections
-        this.connectors.reset();
         this.connectMatches();
       }
     },
     losersBracket(value: Table | null, old?: Table | null) {
       if (tableChanged(value, old)) {
-        // reset connections
-        this.connectors.reset();
         this.connectMatches();
       }
     },
+    windowWidth() {
+      this.connectMatches();
+    },
+    windowHeight() {
+      this.connectMatches();
+    },
   },
-  async created() {
-    await this.$nextTick();
+  async mounted() {
     await this.connectors.setContainer(this.$el);
     this.connectMatches();
   },
@@ -166,6 +184,8 @@ export default Vue.extend({
       return `${this.bracketId}-${matchId}`;
     },
     connectMatches() {
+      // reset connections
+      this.connectors.reset();
       const matchVMs = this.winnersBracket
         .concat(this.losersBracket ?? [])
         .map(({ row }) => row.filter(notNull))
@@ -218,8 +238,77 @@ export default Vue.extend({
       assign(rounds.length - 1, 0, 0, rows);
       return matrix.filter((row) => row.some((element) => element !== null));
     },
+    getBracketVM(name: VueI18n.TranslateResult, table: Table): BracketVM {
+      if (table.length === 0) {
+        return {
+          headers: [],
+          cells: [],
+        };
+      }
+
+      const rounds = table[0].row.length;
+
+      const getNamePlaceHolder = (): CellVM => ({
+        content: null,
+        cellClasses: ["lanyi-bracket-name-placeholder"],
+        classes: ["lanyi-match-gap"],
+        // there will only be one placeholder per row
+        // so it's fine to have a constant key
+        key: "gen-bracket-name-placeholder",
+      });
+
+      const toCellVM = (content: ElementVM, index: number): CellVM => ({
+        cellClasses: ["lanyi-match-cell"],
+        classes: [isNull(content) ? "lanyi-match-gap" : "lanyi-match"],
+        key: isNull(content) ? `gen-gap-${index}` : `match-${content.id}`,
+        content,
+      });
+
+      const getGapRow = (rowKey: string): BracketRowVM => ({
+        rowKey,
+        row: [
+          getNamePlaceHolder(),
+          ...iota(rounds).map((i) => toCellVM(null, i)),
+        ],
+      });
+
+      const mainRows = table.map(
+        ({ row, rowKey }): BracketRowVM => ({
+          rowKey,
+          row: [getNamePlaceHolder(), ...row.map(toCellVM)],
+        })
+      );
+
+      const bestOfs = nCopies(rounds, () => "BO3");
+      const mainHeaders = bestOfs.map(
+        (content, i): HeaderVM => ({
+          cellClasses: ["lanyi-header-cell"],
+          classes: ["lanyi-bracket-round"],
+          content,
+        })
+      );
+
+      return {
+        headers: [
+          {
+            cellClasses: ["lanyi-header-cell", "lanyi-bracket-name-cell"],
+            classes: ["lanyi-bracket-name"],
+            content: name,
+          },
+          ...mainHeaders,
+        ],
+        cells: [
+          getGapRow("gen-gap-row-first"),
+          ...mainRows,
+          getGapRow("gen-gap-row-last"),
+        ],
+      };
+    },
   },
   computed: {
+    stickyHeaderOffsets(): { top: number } {
+      return { top: headerHeight };
+    },
     winnersRounds(): number[] {
       const bo = nCopies(this.winnersBracket[0].row.length, () => 3);
       bo[bo.length - 1] = 5;
@@ -240,6 +329,21 @@ export default Vue.extend({
         return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
       }
       return [];
+    },
+    brackets(): BracketVM[] {
+      const brackets = [
+        this.getBracketVM(
+          this.$t("bracket.winnersBracket"),
+          this.winnersBracket
+        ),
+      ];
+      const losers = this.losersBracket;
+      if (losers) {
+        brackets.push(
+          this.getBracketVM(this.$t("bracket.losersBracket"), losers)
+        );
+      }
+      return brackets;
     },
     losersRounds(): number[] {
       if (this.losersBracket != null) {
@@ -267,7 +371,63 @@ export default Vue.extend({
   position: relative;
 }
 
-.match-cell {
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  white-space: nowrap;
+}
+
+.lanyi-header-wrapper,
+.lanyi-match-cell {
   padding: 0 30px;
+}
+
+.lanyi-header-cell.lanyi-bracket-name-cell {
+  padding-right: 30px;
+  padding-left: 0;
+}
+
+.lanyi-bracket-name-cell .lanyi-header-wrapper {
+  padding: 0;
+}
+
+.lanyi-bracket-name-placeholder > * {
+  width: 150px;
+}
+
+.lanyi-match-cell > * {
+  width: 250px;
+  height: 60px;
+}
+
+.lanyi-bracket-name,
+.lanyi-bracket-round {
+  font-size: 130%;
+  font-weight: bold;
+  padding: 5px 0;
+  color: white;
+  text-shadow: 0 0 5px #cccccc;
+}
+
+.lanyi-bracket-round {
+  background: rgba(255, 57, 36, 0.8);
+}
+
+.lanyi-header-wrapper {
+  background: rgba(255, 255, 255, 0.22);
+  border-bottom: 3px solid white;
+}
+
+.lanyi-match-gap {
+  background: url("~@/assets/main/mid/M_BO3list.png") 100% 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.15) 80%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  border-right: 2px solid rgba(0, 0, 0, 0.5);
 }
 </style>

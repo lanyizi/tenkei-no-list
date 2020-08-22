@@ -27,6 +27,7 @@
     "playerName": "玩家名称",
     "score": "分数",
     "winner": "胜出者",
+    "winnersBracket": "胜者组",
     "losersBracket": "败者组"
   },
   "auth": {

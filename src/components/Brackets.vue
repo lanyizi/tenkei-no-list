@@ -330,7 +330,7 @@ export default Vue.extend({
           // extra match
           rounds.push([finals.winnerNext]);
         }
-        return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
+        return this.roundsToTable(rounds).map(getRowWithKey);
       } else if (isSingleElimination(this.model)) {
         return this.roundsToTable(this.model.winnersRounds).map(getRowWithKey);
       }

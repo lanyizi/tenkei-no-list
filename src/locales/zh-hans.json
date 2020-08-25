@@ -76,6 +76,14 @@
       "yes": "败者组冠军需要击败胜者组冠军两轮才能赢得胜利",
       "no": "只打一轮，胜者组冠军以一分的优势开局"
     },
+    "bestOfs": {
+      "title": "sfgz",
+      "description": "介绍",
+      "finals": "决赛局数",
+      "semiFinals": "半决赛局数",
+      "default": "默认最高局数",
+      "common": ""
+    },
     "refereesDescription": "可以请其他赛务来帮忙，他们将会有权限修改比赛设置以及选手列表",
     "createAndStart": "创建并开始比赛",
     "start": "开始比赛",

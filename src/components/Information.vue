@@ -54,8 +54,8 @@ export default Vue.extend({
     },
   },
   methods: {
-    update<K extends keyof Information>(key: K, value: Information[K]) {
-      this.$emit("input", { ...this.value, [key]: value });
+    update<K extends keyof Information>(part: Pick<Information, K>) {
+      this.$emit("input", { ...this.value, ...part });
     },
   },
   computed: {
@@ -63,16 +63,16 @@ export default Vue.extend({
       get(): string {
         return this.value.name;
       },
-      set(value: string) {
-        this.update("name", value);
+      set(name: string) {
+        this.update({ name });
       },
     },
     description: {
       get(): string {
         return this.value.description;
       },
-      set(value: string) {
-        this.update("description", value);
+      set(description: string) {
+        this.update({ description });
       },
     },
     referees: {
@@ -87,7 +87,7 @@ export default Vue.extend({
             list.includes(name);
           })
           .map(([id]) => id);
-        this.update("referees", newList);
+        this.update({ referees: newList });
       },
     },
     tournamentDate: {
@@ -95,7 +95,7 @@ export default Vue.extend({
         return new Date(this.value.tournamentDate * 1000);
       },
       set(value: Date) {
-        this.update("tournamentDate", Math.floor(value.valueOf() / 1000));
+        this.update({ tournamentDate: Math.floor(value.valueOf() / 1000) });
       },
     },
     date: {
@@ -138,7 +138,7 @@ export default Vue.extend({
         date.setHours(...values);
         this.tournamentDate = date;
       },
-    },
+    }
   },
 });
 </script>

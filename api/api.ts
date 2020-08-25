@@ -115,8 +115,10 @@ server.use(async (req, res, next) => {
             .filter(t => {
               return t.status === 'started' || t.information.organizer === user
             })
-            .map(({ id, information, status, settings, players }) => ({
-              id, information, status, settings, players
+            .map(({
+              id, information, status, settings, roundFormats, players
+            }) => ({
+              id, information, status, settings, roundFormats, players
             })).value()
           res.json(descs)
         },

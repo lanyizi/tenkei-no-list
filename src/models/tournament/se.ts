@@ -43,6 +43,7 @@ export const createSingleElimination = (
       ...information,
       referees: information.referees.slice()
     },
+    roundFormats: [[]],
     players: players.slice(),
     matches: [],
     winnersRounds: [],

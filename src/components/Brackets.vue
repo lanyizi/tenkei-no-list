@@ -3,7 +3,7 @@
     <v-dialog
       max-width="600"
       :value="matchEditorId != null"
-      @input="matchEditorId = $event ? matchEditorId : null"
+      @input="() => matchEditorId = $event ? matchEditorId : null"
     >
       <MatchEditor
         v-if="matchEditorId != null"
@@ -12,7 +12,7 @@
         :tournament="model"
         :match-id="matchEditorId"
         @refresh-requested="$emit('refresh-requested')"
-        @close="matchEditorId = null"
+        @close="() => matchEditorId = null"
       ></MatchEditor>
     </v-dialog>
     <div ref="jsplumb-container" style="position: relative;">

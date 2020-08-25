@@ -32,11 +32,15 @@ export const createDoubleElimination = (
 
   const de: DoubleElimination = {
     status: 'started',
-    settings: { mode: 'de', hasExtraMatch },
+    settings: {
+      mode: 'de',
+      hasExtraMatch
+    },
     information: {
       ...information,
       referees: information.referees.slice()
     },
+    roundFormats: [[], []],
     players: players.slice(),
     matches: nCopies(127, () => createMatch()),
     winnersRounds: nCopies(7, () => []),

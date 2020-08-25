@@ -1,68 +1,48 @@
-import { isArray, has, FromDefinition, getTypeChecker } from '@/utils';
+import { isArray, FromDefinition, getTypeChecker } from '@/utils';
 import isBoolean from 'lodash/isBoolean';
 import isNumber from 'lodash/isNumber';
-import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 
-export type SingleEliminationSettings = {
-  mode: 'se';
-  hasThirdPlace: boolean;
-}
-export const isSingleEliminationSettings = (
-  s: unknown
-): s is SingleEliminationSettings => {
-  return isObject(s) &&
-    has(s, 'mode') && s.mode === 'se' &&
-    has(s, 'hasThirdPlace') && isBoolean(s.hasThirdPlace);
-}
+const isArrayOfNumber = (x: unknown): x is number[] => isArray(x, isNumber);
 
-export type DoubleEliminationSettings = {
-  mode: 'de';
-  hasExtraMatch: boolean;
+const singleEliminationSettingsDefinition = {
+  mode: (x: unknown): x is 'se' => x === 'se',
+  hasThirdPlace: isBoolean
 }
-export const isDoubleEliminationSettings = (
-  s: unknown
-): s is DoubleEliminationSettings => {
-  return isObject(s) &&
-    has(s, 'mode') && s.mode === 'de' &&
-    has(s, 'hasExtraMatch') && isBoolean(s.hasExtraMatch);
+export type SingleEliminationSettings =
+  FromDefinition<typeof singleEliminationSettingsDefinition>;
+export const isSingleEliminationSettings =
+  getTypeChecker(singleEliminationSettingsDefinition);
+
+const doubleEliminationSettingsDefinition = {
+  mode: (x: unknown): x is 'de' => x === 'de',
+  hasExtraMatch: isBoolean
 }
+export type DoubleEliminationSettings =
+  FromDefinition<typeof doubleEliminationSettingsDefinition>;
+export const isDoubleEliminationSettings =
+  getTypeChecker(doubleEliminationSettingsDefinition);
 
 export type Settings = SingleEliminationSettings | DoubleEliminationSettings;
 export const isSettings = (s: unknown): s is Settings =>
   isSingleEliminationSettings(s) || isDoubleEliminationSettings(s);
 
-export type Information = {
-  organizer: number;
-  referees: number[];
-  tournamentDate: number;
-  name: string;
-  description: string;
-}
-export const isInformation = (info: unknown): info is Information => {
-  if (!isObject(info)) {
-    return false;
-  }
+const informationDefinition = {
+  organizer: isNumber,
+  referees: isArrayOfNumber,
+  tournamentDate: isNumber,
+  name: isString,
+  description: isString
+};
 
-  if (!has(info, 'referees') || !isArray(info.referees, isNumber)) {
-    return false;
-  }
-  type Tuple = [keyof Information, 'string' | 'number'];
-  const fields: Tuple[] = [
-    ['name', 'string'],
-    ['description', 'string'],
-    ['organizer', 'number'],
-    ['organizer', 'number'],
-  ];
-  return fields.every(<T extends Tuple>([k, t]: T) => {
-    return has(info, k) && typeof info[k] === t;
-  });
-}
+export type Information = FromDefinition<typeof informationDefinition>;
+export const isInformation = getTypeChecker(informationDefinition);
 
 const setupLikeDefinition = {
   status: isString,
   information: isInformation,
   settings: isSettings,
+  roundFormats: (r: unknown): r is number[][] => isArray(r, isArrayOfNumber),
   players: (x: unknown): x is string[] => isArray(x, isString)
 }
 export type SetupLike = FromDefinition<typeof setupLikeDefinition>;
@@ -83,7 +63,8 @@ export const createSetup = (organizer: number): Setup => ({
   },
   settings: {
     mode: 'se',
-    hasThirdPlace: false
+    hasThirdPlace: false,
   },
+  roundFormats: [[]],
   players: []
 });

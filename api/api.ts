@@ -112,9 +112,6 @@ server.use(async (req, res, next) => {
         '/tournamentDescs'() {
           const descs: SetupLike[] = database.db
             .get('tournaments')
-            .filter(t => {
-              return t.status === 'started' || t.information.organizer === user
-            })
             .map(({
               id, information, status, settings, roundFormats, players
             }) => ({

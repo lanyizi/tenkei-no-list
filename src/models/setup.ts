@@ -1,9 +1,12 @@
-import { isArray, FromDefinition, getTypeChecker } from '@/utils';
+import {
+  isArray,
+  FromDefinition,
+  getTypeChecker,
+  isArrayOfNumber
+} from '@/utils';
 import isBoolean from 'lodash/isBoolean';
 import isNumber from 'lodash/isNumber';
 import isString from 'lodash/isString';
-
-const isArrayOfNumber = (x: unknown): x is number[] => isArray(x, isNumber);
 
 const singleEliminationSettingsDefinition = {
   mode: (x: unknown): x is 'se' => x === 'se',

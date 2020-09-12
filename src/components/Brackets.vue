@@ -12,21 +12,25 @@
         :tournament="model"
         :match-id="matchEditorId"
         @refresh-requested="$emit('refresh-requested')"
-        @close="() => matchEditorId = null"
+        @close="matchEditorId = null"
       ></MatchEditor>
     </v-dialog>
     <div ref="jsplumb-container" style="position: relative;">
-      <table v-for="({headers, cells}, i) in brackets" :key="i">
+      <table v-for="({ headers, rows }, i) in brackets" :key="i">
         <tr>
-          <th v-for="({cellClasses, classes, content}, i) in headers" :key="i" :class="cellClasses">
+          <th
+            v-for="({ cellClasses, classes, content }, i) in headers"
+            :key="i"
+            :class="cellClasses"
+          >
             <div v-sticky sticky-offset="stickyHeaderOffsets" class="lanyi-header-wrapper">
               <div :class="classes">{{ content }}</div>
             </div>
           </th>
         </tr>
-        <tr v-for="{row, rowKey} in cells" :key="rowKey">
+        <tr v-for="{ row, rowKey } in rows" :key="rowKey">
           <td
-            v-for="({cellClasses, classes, key, content}, i) in row"
+            v-for="({ cellClasses, classes, key, bestOf, content }) in row"
             :key="key"
             :class="cellClasses"
           >
@@ -34,7 +38,7 @@
               v-if="content != null"
               :id="getMatchElementId(content.id)"
               :value="content"
-              @click.native="bo = winnersRounds[i]; onMatchClick(content.id);"
+              @click.native="onMatchClick(bestOf, content.id);"
               :class="classes"
             ></Match>
             <div v-else :class="classes" />
@@ -91,6 +95,7 @@ type HeaderVM = CellVMBase & { content: VueI18n.TranslateResult };
 
 type CellVM = CellVMBase & {
   key: string;
+  bestOf: number;
   content: ElementVM;
 };
 
@@ -101,7 +106,7 @@ type BracketRowVM = {
 
 type BracketVM = {
   headers: HeaderVM[];
-  cells: BracketRowVM[];
+  rows: BracketRowVM[];
 };
 
 let id = 0;
@@ -205,10 +210,11 @@ export default Vue.extend({
         }
       }
     },
-    onMatchClick(id: number) {
+    onMatchClick(roundFormat: number, id: number) {
       if (this.matchEditorId !== null) {
         return;
       }
+      this.bo = roundFormat;
       this.matchEditorId = id;
     },
     roundsToTable(rounds: number[][]): ElementVM[][] {
@@ -244,17 +250,30 @@ export default Vue.extend({
       assign(rounds.length - 1, 0, 0, rows);
       return matrix.filter((row) => row.some((element) => element !== null));
     },
-    getBracketVM(name: VueI18n.TranslateResult, table: Table): BracketVM {
+    getBracketVM(
+      name: VueI18n.TranslateResult,
+      table: Table,
+      bestOfs: number[]
+    ): BracketVM {
       if (table.length === 0) {
         return {
           headers: [],
-          cells: [],
+          rows: [],
         };
       }
 
       const rounds = table[0].row.length;
+      const normalizedBestOfs = bestOfs.slice();
+      normalizedBestOfs[0] = normalizedBestOfs[0] || 1;
+      while (normalizedBestOfs.length < rounds) {
+        normalizedBestOfs.unshift(normalizedBestOfs[0]);
+      }
+      if (normalizedBestOfs.length > rounds) {
+        normalizedBestOfs.splice(0, normalizedBestOfs.length - rounds);
+      }
 
       const getNamePlaceHolder = (): CellVM => ({
+        bestOf: NaN,
         content: null,
         cellClasses: ["lanyi-bracket-name-placeholder"],
         classes: ["lanyi-match-gap"],
@@ -267,6 +286,7 @@ export default Vue.extend({
         cellClasses: ["lanyi-match-cell"],
         classes: [isNull(content) ? "lanyi-match-gap" : "lanyi-match"],
         key: isNull(content) ? `gen-gap-${index}` : `match-${content.id}`,
+        bestOf: normalizedBestOfs[index],
         content,
       });
 
@@ -285,12 +305,11 @@ export default Vue.extend({
         })
       );
 
-      const bestOfs = nCopies(rounds, () => "BO3");
-      const mainHeaders = bestOfs.map(
-        (content): HeaderVM => ({
+      const mainHeaders = normalizedBestOfs.map(
+        (bestOf): HeaderVM => ({
           cellClasses: ["lanyi-header-cell"],
           classes: ["lanyi-bracket-round"],
-          content,
+          content: `BO${bestOf}`,
         })
       );
 
@@ -303,7 +322,7 @@ export default Vue.extend({
           },
           ...mainHeaders,
         ],
-        cells: [
+        rows: [
           getGapRow("gen-gap-row-first"),
           ...mainRows,
           getGapRow("gen-gap-row-last"),
@@ -314,12 +333,6 @@ export default Vue.extend({
   computed: {
     stickyHeaderOffsets(): { top: number } {
       return { top: headerHeight };
-    },
-    winnersRounds(): number[] {
-      const bo = nCopies(this.winnersBracket[0].row.length, () => 3);
-      bo[bo.length - 1] = 5;
-      bo[bo.length - 2] = 5;
-      return bo;
     },
     winnersBracket(): Table {
       if (isDoubleElimination(this.model)) {
@@ -340,25 +353,21 @@ export default Vue.extend({
       const brackets = [
         this.getBracketVM(
           this.$t("bracket.winnersBracket"),
-          this.winnersBracket
+          this.winnersBracket,
+          this.model.roundFormats[0] ?? []
         ),
       ];
       const losers = this.losersBracket;
       if (losers) {
         brackets.push(
-          this.getBracketVM(this.$t("bracket.losersBracket"), losers)
+          this.getBracketVM(
+            this.$t("bracket.losersBracket"),
+            losers,
+            this.model.roundFormats[1] ?? []
+          )
         );
       }
       return brackets;
-    },
-    losersRounds(): number[] {
-      if (this.losersBracket != null) {
-        const bo = nCopies(this.losersBracket[0].row.length, () => 1);
-        bo[bo.length - 1] = 5;
-        bo[bo.length - 2] = 3;
-        return bo;
-      }
-      return [];
     },
     losersBracket(): Table | null {
       if (

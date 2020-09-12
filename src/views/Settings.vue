@@ -26,6 +26,7 @@ import { Setup } from "@/models/setup";
 import { Tournament, createFromSetup } from "@/models/tournament";
 import { loadTournament, request } from "@/request";
 import { TranslateResult } from "vue-i18n";
+import pick from "lodash/pick";
 
 export default Vue.extend({
   components: {
@@ -67,7 +68,7 @@ export default Vue.extend({
       const [method, data] =
         this.model.status === "setup"
           ? ["PUT" as const, this.model]
-          : ["PATCH" as const, { information: this.model.information }];
+          : ["PATCH" as const, pick(this.model, "information", "roundFormats")];
       return request(method, `/tournaments/${this.id}`, this.token, data).then(
         () => true
       );

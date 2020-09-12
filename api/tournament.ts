@@ -7,8 +7,7 @@ import {
   WithID
 } from '@/models/validations';
 import { Information, Setup } from '@/models/setup';
-import { has } from '@/utils';
-import isEqual from 'lodash/isEqual';
+import { has, isArray, isArrayOfNumber } from '@/utils';
 import isObject from 'lodash/isObject';
 
 
@@ -34,26 +33,44 @@ export const tournament = (
   return next()
 }
 
-export const information = (
+export const patchTournament = (
   user: number,
-  current: Information,
+  current: WithID<Tournament | Setup>,
   body: unknown,
   next: () => void
-) => {
-  if (!isObject(body) || !has(body, 'information')) {
-    throw new BadRequestError('Body has no information to be updated')
+): void => {
+  if (!isObject(body)) {
+    throw new BadRequestError('Body is not object')
   }
-  // make sure body only contains information
-  if (!isEqual(['information'], Object.getOwnPropertyNames(body))) {
-    throw new NotImplementedError('Currently only info can be patched')
+  const fields = Object.getOwnPropertyNames(body);
+  const validFields = ['information', 'roundFormats'];
+  if (!fields.every(f => validFields.includes(f))) {
+    throw new BadRequestError('Some fields are invalid: ' + fields.join())
   }
 
+  if (has(body, 'information')) {
+    verifyInformation(user, current.information, body.information)
+  }
+  if (has(body, 'roundFormats')) {
+    if (!isArray(body.roundFormats, isArrayOfNumber)) {
+      throw new BadRequestError('roundFormats must be number[][]')
+    }
+  }
+
+  return next()
+}
+
+const verifyInformation = (
+  user: number,
+  current: Information,
+  information: unknown
+) => {
   // validate info
-  informationValidator(current, body.information)
+  informationValidator(current, information)
 
   if (user === current.organizer) {
     // information is always writable by organizer
-    return next()
+    return
   }
   // check referee
   if (!current.referees.includes(user)) {
@@ -61,9 +78,7 @@ export const information = (
   }
 
   // referee cannot alter organizer or change referees
-  if (refereeChanged(current, body.information)) {
+  if (refereeChanged(current, information)) {
     throw new NotAuthorizedError('You cannot alter referees')
   }
-
-  return next()
 }

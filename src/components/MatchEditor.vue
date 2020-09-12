@@ -241,10 +241,13 @@ export default Vue.extend({
             };
           }
         } else {
-          const [[loserFinalsId]] = this.tournament.losersRounds.slice(-1);
+          const loserFinalsIds: number[] = [];
+          if (this.tournament.losersRounds.length > 1) {
+            loserFinalsIds.push(...this.tournament.losersRounds.slice(-1)[0]);
+          }
           // no extra match, winner bracket winner has 1 point advantage
           // check if the current winner being set is from semifinals
-          if (![semiFinalsId, loserFinalsId].includes(this.matchId)) {
+          if (![semiFinalsId, ...loserFinalsIds].includes(this.matchId)) {
             return;
           }
           // if yes, next match will have one point advantage for the winner.

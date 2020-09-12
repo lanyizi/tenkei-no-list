@@ -30,8 +30,12 @@ export const isArray = <T>(
   return Array.isArray(array) && array.every(elementChecker);
 }
 
-type ExpectedType<T extends (arg: unknown) => unknown> = 
-    T extends (arg: unknown) => arg is infer R ? R : never
+export const isArrayOfNumber = (
+  x: unknown
+): x is number[] => isArray(x, isNumber);
+
+type ExpectedType<T extends (arg: unknown) => unknown> =
+  T extends (arg: unknown) => arg is infer R ? R : never
 type Definition = Record<string, (arg: unknown) => unknown>
 export type FromDefinition<D extends Definition> = {
   [K in keyof D]: ExpectedType<D[K]>
@@ -42,5 +46,5 @@ export const getTypeChecker = <D extends Definition>(d: D) => {
     return isObject(e) && keys.every(k => {
       return has(e, k) && d[k](e[k])
     })
-  } 
+  }
 }

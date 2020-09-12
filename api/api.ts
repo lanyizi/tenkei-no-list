@@ -11,7 +11,7 @@ import {
 } from '@/models/validations'
 import { CommitedEdit, isEdit } from '@/models/changes'
 import { has } from '@/utils'
-import { tournament, information } from './tournament'
+import { tournament, patchTournament } from './tournament'
 import { Database } from './database'
 import { changeHandler } from './changes'
 import isObject from 'lodash/isObject'
@@ -220,8 +220,8 @@ server.use(async (req, res, next) => {
           // updating whole tournament
           return tournament(user, t, body, next)
         case 'patch':
-          // editing information
-          return information(user, t.information, body, next)
+          // patch tournament information or roundFormats
+          return patchTournament(user, t, body, next)
         default:
           throw new BadRequestError(`Unsupported method ${method}`)
       }

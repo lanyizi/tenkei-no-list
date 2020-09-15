@@ -1,6 +1,6 @@
 <template>
-  <v-card dark class="information">
-    <v-card-title dark>
+  <v-card :dark="dark" class="information">
+    <v-card-title :dark="dark">
       <span v-if="readOnly">{{ name }}</span>
       <v-text-field v-else :label="$t('information.name')" v-model="name" />
     </v-card-title>
@@ -15,10 +15,14 @@
       </template>
     </v-card-text>
     <v-card-text v-if="readOnly">{{ description }}</v-card-text>
-    <template v-else>
-      <v-card-subtitle>{{ $t('information.description') }}</v-card-subtitle>
-      <v-textarea v-model="description"></v-textarea>
-    </template>
+    <v-container v-else>
+      <v-textarea
+        auto-grow
+        rows="2"
+        :label="$t('information.description')"
+        v-model="description"
+      />
+    </v-container>
     <v-card-subtitle>{{$t('information.referees')}}</v-card-subtitle>
     <v-card-text class="information-value">{{ referees.join(' ') }}</v-card-text>
   </v-card>
@@ -32,6 +36,7 @@ import { loadReferees } from "@/request";
 
 export default Vue.extend({
   props: {
+    dark: Boolean,
     value: Object as () => Information,
     readOnly: {
       type: Boolean,
@@ -138,7 +143,7 @@ export default Vue.extend({
         date.setHours(...values);
         this.tournamentDate = date;
       },
-    }
+    },
   },
 });
 </script>

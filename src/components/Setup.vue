@@ -1,70 +1,91 @@
 <template>
-  <div>
-    <InformationComponent :read-only="false" v-model="information" />
-    <h3 class="settings-title">{{ $t('tournamentSetup.playerListSettings.title') }}</h3>
-    <table class="player-list">
-      <tbody>
-        <tr>
-          <td colspan="2">{{ $t('tournamentSetup.playerListSettings.addHint') }}</td>
-          <td>
-            <button>{{ $t('tournamentSetup.playerListSettings.random') }}</button>
-          </td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>
-            <textarea rows="1" v-model="playersInput"></textarea>
-          </td>
-          <td>
-            <button @click="addPlayers">{{ $t('generic.add') }}</button>
-          </td>
-        </tr>
-        <tr v-for="(player, i) in players" :key="i">
-          <td>{{i+1}}</td>
-          <td>
-            <input type="text" :value="players[i]" @input="updatePlayer(i, $event.target.value)" />
-          </td>
-          <td>
-            <button @click="removePlayer(i)">{{ $t('generic.remove') }}</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <v-card class="settings">
-      <v-card-title>{{ $t('tournamentSetup.type') }}</v-card-title>
-      <SingleSelection :descriptions="types.map(([,d]) => d)" v-model="typeIndex" />
-      <div v-if="settings.mode === 'se'">
-        <label class="settings-entry">
-          <input type="checkbox" v-model="hasThirdPlaceMatch" />
-          {{ $t('tournamentSetup.hasThirdPlaceMatch') }}
-        </label>
-      </div>
-      <div v-else-if="settings.mode === 'de'">
-        <h4
-          class="settings-title"
-        >{{ $t('tournamentSetup.doubleEliminationFinalsExtraMatch.title') }}</h4>
-        <SingleSelection :descriptions="extraMatchDescriptions" v-model="extraMatchIndex" />
-      </div>
-    </v-card>
-    <v-card>
-      <v-card-title>{{ $t('tournamentSetup.bestOfs.title') }}</v-card-title>
-      <v-card-text>{{ $t('tournamentSetup.bestOfs.description') }}</v-card-text>
-      <v-text-field
-        v-for="{ key, label, value, input, clear } in mainRoundFormats"
-        :key="key"
-        type="number"
-        step="1"
-        clearable
-        :label="label"
-        :value="value"
-        @input="input"
-        @click:clear="clear"
-      />
-      <template>
-        <template v-if="settings.mode === 'se'"></template>
-      </template>
-    </v-card>
-  </div>
+  <v-container>
+    <v-row>
+      <v-col cols="6">
+        <h3>{{ $t('information.title') }}</h3>
+        <InformationComponent :dark="false" :read-only="false" v-model="information" />
+        <br />
+        <h3>{{ $t('tournamentSetup.playerListSettings.title') }}</h3>
+        <v-simple-table>
+          <tbody>
+            <tr>
+              <td colspan="2">{{ $t('tournamentSetup.playerListSettings.addHint') }}</td>
+              <td>
+                <button>{{ $t('tournamentSetup.playerListSettings.random') }}</button>
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <textarea rows="1" v-model="playersInput"></textarea>
+              </td>
+              <td>
+                <button @click="addPlayers">{{ $t('generic.add') }}</button>
+              </td>
+            </tr>
+            <tr v-for="(player, i) in players" :key="i">
+              <td>{{i+1}}</td>
+              <td>
+                <input
+                  type="text"
+                  :value="players[i]"
+                  @input="updatePlayer(i, $event.target.value)"
+                />
+              </td>
+              <td>
+                <button @click="removePlayer(i)">{{ $t('generic.remove') }}</button>
+              </td>
+            </tr>
+          </tbody>
+        </v-simple-table>
+      </v-col>
+      <v-col cols="6">
+        <h3>{{ $t('tournamentSetup.title') }}</h3>
+        <v-card class="settings">
+          <v-card-title>{{ $t('tournamentSetup.type') }}</v-card-title>
+          <v-card-text>
+            <SingleSelection :descriptions="types.map(([,d]) => d)" v-model="typeIndex" />
+            <div v-if="settings.mode === 'se'">
+              <label class="settings-entry">
+                <input type="checkbox" v-model="hasThirdPlaceMatch" />
+                {{ $t('tournamentSetup.hasThirdPlaceMatch') }}
+              </label>
+            </div>
+            <div v-else-if="settings.mode === 'de'">
+              <h4
+                class="settings-title"
+              >{{ $t('tournamentSetup.doubleEliminationFinalsExtraMatch.title') }}</h4>
+              <SingleSelection :descriptions="extraMatchDescriptions" v-model="extraMatchIndex" />
+            </div>
+          </v-card-text>
+        </v-card>
+        <v-card>
+          <v-card-title>{{ $t('tournamentSetup.bestOfs.title') }}</v-card-title>
+          <v-card-text>
+            {{ $t('tournamentSetup.bestOfs.description') }}
+            <br />
+            <v-text-field
+              v-for="{ key, label, value, input, clear } in mainRoundFormats"
+              :key="key"
+              type="number"
+              step="1"
+              clearable
+              :label="label"
+              :value="value"
+              @input="input"
+              @click:clear="clear"
+            />
+          </v-card-text>
+          <!--<template>
+            <template v-if="settings.mode === 'se'"></template>
+          </template>-->
+        </v-card>
+      </v-col>
+    </v-row>
+    <!--<table class="player-list">
+      
+    </table>-->
+  </v-container>
 </template>
 <script lang="ts">
 import Vue from "vue";

@@ -3,17 +3,17 @@
     <div v-if="token">
       <div v-if="placeholderMessage != null">{{ placeholderMessage }}</div>
       <div v-else>
-        {{ $t('tournamentSetup.conflictWarning') }}
-        <br />
-        {{ $t('tournamentSetup.hintConflictWarning') }}
         <SetupComponent v-if="model" :token="token" v-model="model" />
         <div v-else>{{ $t('generic.unhandledError') }}</div>
-        <button :disabled="disabled" v-on:click="endAction(saveTournament)">{{ $t('generic.save') }}</button>
-        <button
+        <v-btn
+          :disabled="disabled"
+          v-on:click="endAction(saveTournament)"
+        >{{ $t('generic.save') }}</v-btn>
+        <v-btn
           :disabled="disabled"
           v-on:click="endAction(createTournament)"
-        >{{ $t('tournamentSetup.start') }}</button>
-        <button :disabled="disabled" @click="endAction">{{ $t('generic.cancel') }}</button>
+        >{{ $t('tournamentSetup.start') }}</v-btn>
+        <v-btn :disabled="disabled" @click="endAction">{{ $t('generic.cancel') }}</v-btn>
       </div>
     </div>
     <div v-else>{{ $t('auth.requireLogIn') }}</div>

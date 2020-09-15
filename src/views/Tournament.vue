@@ -13,7 +13,7 @@
           :model="processed.data"
           @refresh-requested="loadTournament"
         />
-        <Information read-only :value="model.information" />
+        <Information dark read-only :value="model.information" />
       </div>
     </div>
   </div>

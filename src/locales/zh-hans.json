@@ -49,6 +49,7 @@
     "hintCannotEdit": "假如真的要修改本轮胜利者，请先修改下一轮的比赛。"
   },
   "information": {
+    "title": "比赛信息",
     "name": "比赛名称",
     "organizer": "举办方",
     "date": "比赛日期",
@@ -77,8 +78,8 @@
       "no": "只打一轮，胜者组冠军以一分的优势开局"
     },
     "bestOfs": {
-      "title": "sfgz",
-      "description": "介绍",
+      "title": "胜负规则",
+      "description": "设置每一轮的最高局数",
       "finals": "决赛局数",
       "semiFinals": "半决赛局数",
       "default": "默认最高局数",

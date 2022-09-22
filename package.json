@@ -19,7 +19,7 @@
     "vue-sticky-directive": "0.0.10",
     "vue-timers": "^2.0.4",
     "vue-window-size": "^0.6.0",
-    "vuetify": "^2.2.11"
+    "vuetify": "^2.6.10"
   },
   "devDependencies": {
     "@types/json-server": "^0.14.2",

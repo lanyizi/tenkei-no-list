@@ -44,7 +44,7 @@
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.10.1",
     "typescript": "~3.9.3",
-    "vue-cli-plugin-i18n": "~1.0.1",
+    "vue-cli-plugin-i18n": "~2.3.2",
     "vue-cli-plugin-vuetify": "~2.5.8",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.9.2"
